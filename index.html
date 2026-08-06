@@ -316,18 +316,21 @@
             </div>
         </div>
 
-        <!-- MODAL: INITIAL BALANCE & WALLETS -->
+        <!-- MODAL: INITIAL BALANCE & WALLETS (ADVANCED EDITING & ADDING) -->
         <div class="modal-overlay" id="modalInitialBalance">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4><i data-lucide="edit"></i> Quản Lý Ví & Số Dư Đầu Kỳ</h4>
                     <button class="close-btn" id="closeInitialModal"><i data-lucide="x"></i></button>
                 </div>
-                <div class="modal-body" id="initialBalanceFormList">
-                    <!-- Loaded dynamically -->
+                <div class="modal-body">
+                    <div id="initialBalanceFormList">
+                        <!-- Loaded dynamically -->
+                    </div>
+                    <button type="button" class="btn-sm secondary" id="btnAddAccountInModal" style="width: 100%; margin-top: 10px; padding: 10px; justify-content: center;"><i data-lucide="plus"></i> Thêm Ví / Ngân Hàng Mới</button>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn-block primary" id="btnSaveInitialBalances">Cập Nhật Ví & Số Dư</button>
+                    <button type="button" class="btn-block primary" id="btnSaveInitialBalances">Cập Nhật Ví & Số Dư</button>
                 </div>
             </div>
         </div>

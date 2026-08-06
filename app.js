@@ -1,17 +1,17 @@
-// === PERSONAL FINANCE APP V4 JS LOGIC (WITH AVATAR & USER PROFILE UPLOAD) ===
+// === PERSONAL FINANCE APP V4 JS LOGIC (CLEAN INITIAL TRANSACTIONS STATE FOR PRODUCTION) ===
 
-// --- DEFAULT INITIAL STATE ---
+// --- DEFAULT INITIAL STATE (CLEAN & READY FOR REAL TRANSACTIONS) ---
 const DEFAULT_STATE = {
     userProfile: {
         name: 'Tài Chính Cá Nhân',
         avatar: '' // Base64 data URL
     },
     accounts: [
-        { id: 'acc-1', name: 'Tài khoản VCB', type: 'Tài khoản thanh toán', initialBalance: 10000000, note: 'Tài khoản nhận lương chính' },
-        { id: 'acc-2', name: 'Tài khoản Chứng khoán', type: 'Tài khoản đầu tư', initialBalance: 20000000, note: 'Tích sản cổ phiếu VN30' },
+        { id: 'acc-1', name: 'Tài khoản VCB', type: 'Tài khoản thanh toán', initialBalance: 0, note: 'Tài khoản nhận lương chính' },
+        { id: 'acc-2', name: 'Tài khoản Chứng khoán', type: 'Tài khoản đầu tư', initialBalance: 0, note: 'Tích sản cổ phiếu VN30' },
         { id: 'acc-3', name: 'Thẻ tín dụng', type: 'Thẻ tín dụng', initialBalance: 0, note: 'Hạn mức 50 triệu' },
-        { id: 'acc-4', name: 'Ví MoMo / ViettelPay', type: 'Ví điện tử', initialBalance: 1000000, note: 'Thanh toán hóa đơn nhỏ' },
-        { id: 'acc-5', name: 'Tiền mặt', type: 'Tiền mặt', initialBalance: 2000000, note: 'Chi tiêu hàng ngày' }
+        { id: 'acc-4', name: 'Ví MoMo / ViettelPay', type: 'Ví điện tử', initialBalance: 0, note: 'Thanh toán hóa đơn nhỏ' },
+        { id: 'acc-5', name: 'Tiền mặt', type: 'Tiền mặt', initialBalance: 0, note: 'Chi tiêu hàng ngày' }
     ],
     categories: [
         { name: 'Tiền nhà / Điện nước', type: 'expense', ruleGroup: 'Thiết yếu (50%)' },
@@ -32,26 +32,11 @@ const DEFAULT_STATE = {
         { name: 'Đầu Tư / Cổ Tức', type: 'income', ruleGroup: 'Thu Nhập' },
         { name: 'Thưởng / Khác', type: 'income', ruleGroup: 'Thu Nhập' }
     ],
-    transactions: [
-        { id: 'tx-1', type: 'income', amount: 35000000, category: 'Lương Cố Định', ruleGroup: 'Thu Nhập', accountId: 'acc-1', date: '2026-01-05', note: 'Lương tháng 01/2026' },
-        { id: 'tx-2', type: 'income', amount: 8000000, category: 'Nghề Tay Trái / Freelance', ruleGroup: 'Thu Nhập', accountId: 'acc-1', date: '2026-01-15', note: 'Dự án tư vấn tài chính' },
-        { id: 'tx-3', type: 'income', amount: 3500000, category: 'Đầu Tư / Cổ Tức', ruleGroup: 'Thu Nhập', accountId: 'acc-2', date: '2026-01-20', note: 'Cổ tức cổ phiếu FPT' },
-        { id: 'tx-4', type: 'income', amount: 35000000, category: 'Lương Cố Định', ruleGroup: 'Thu Nhập', accountId: 'acc-1', date: '2026-02-05', note: 'Lương tháng 02/2026' },
-        { id: 'tx-5', type: 'income', amount: 12000000, category: 'Thưởng / Khác', ruleGroup: 'Thu Nhập', accountId: 'acc-1', date: '2026-02-12', note: 'Thưởng Q1 công ty' },
-
-        { id: 'tx-6', type: 'expense', amount: 7000000, category: 'Tiền nhà / Điện nước', ruleGroup: 'Thiết yếu (50%)', accountId: 'acc-1', date: '2026-01-02', note: 'Thanh toán tiền nhà T1' },
-        { id: 'tx-7', type: 'expense', amount: 1500000, category: 'Ăn uống & Thực phẩm', ruleGroup: 'Thiết yếu (50%)', accountId: 'acc-3', date: '2026-01-03', note: 'Đi siêu thị mua đồ ăn' },
-        { id: 'tx-8', type: 'expense', amount: 5000000, category: 'Quỹ Dự Phòng', ruleGroup: 'Tiết kiệm & Đầu tư (20%)', accountId: 'acc-1', date: '2026-01-06', note: 'Trích quỹ dự phòng khẩn cấp' },
-        { id: 'tx-9', type: 'expense', amount: 8000000, category: 'Đầu tư Chứng khoán', ruleGroup: 'Tiết kiệm & Đầu tư (20%)', accountId: 'acc-2', date: '2026-01-06', note: 'Mua tích sản cổ phiếu' },
-        { id: 'tx-10', type: 'expense', amount: 2500000, category: 'Giải trí & Thể thao', ruleGroup: 'Mong muốn (30%)', accountId: 'acc-5', date: '2026-01-10', note: 'Thẻ tập tennis' },
-        { id: 'tx-11', type: 'expense', amount: 1800000, category: 'Mua sắm & Cá nhân', ruleGroup: 'Mong muốn (30%)', accountId: 'acc-3', date: '2026-01-15', note: 'Mua sắm cá nhân' },
-        { id: 'tx-12', type: 'expense', amount: 1200000, category: 'Đi lại & Xe cộ', ruleGroup: 'Thiết yếu (50%)', accountId: 'acc-1', date: '2026-01-18', note: 'Bảo dưỡng xe máy' },
-        { id: 'tx-13', type: 'expense', amount: 900000, category: 'Ăn tiệm & Cà phê', ruleGroup: 'Mong muốn (30%)', accountId: 'acc-5', date: '2026-01-22', note: 'Cà phê gặp gỡ bạn bè' }
-    ],
+    transactions: [], // CLEARED ALL SAMPLE TRANSACTIONS
     goals: [
-        { id: 'g-1', title: 'Quỹ dự phòng khẩn cấp (6 tháng)', target: 100000000, current: 45000000, deadline: '12/2026', note: 'Gửi tiết kiệm trực tuyến' },
-        { id: 'g-2', title: 'Đầu tư tích sản chứng khoán', target: 200000000, current: 80000000, deadline: '12/2027', note: 'Danh mục VN30' },
-        { id: 'g-3', title: 'Mua xe ô tô mới', target: 500000000, current: 120000000, deadline: '06/2028', note: 'Tích lũy & đầu tư an toàn' }
+        { id: 'g-1', title: 'Quỹ dự phòng khẩn cấp (6 tháng)', target: 100000000, current: 0, deadline: '12/2026', note: 'Gửi tiết kiệm trực tuyến' },
+        { id: 'g-2', title: 'Đầu tư tích sản chứng khoán', target: 200000000, current: 0, deadline: '12/2027', note: 'Danh mục VN30' },
+        { id: 'g-3', title: 'Mua xe ô tô mới', target: 500000000, current: 0, deadline: '06/2028', note: 'Tích lũy & đầu tư an toàn' }
     ]
 };
 
@@ -266,7 +251,7 @@ function renderTransactions() {
     const sorted = [...state.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
 
     if (sorted.length === 0) {
-        container.innerHTML = '<div style="text-align: center; color: #94A3B8; padding: 20px;">Chưa có giao dịch nào</div>';
+        container.innerHTML = '<div style="text-align: center; color: #94A3B8; padding: 28px 12px; font-size: 0.9rem;">Chưa có giao dịch nào. Bấm nút <b>+</b> bên dưới để bắt đầu nhập liệu!</div>';
         return;
     }
 
@@ -398,7 +383,7 @@ function renderGoals() {
     container.innerHTML = '';
 
     state.goals.forEach(goal => {
-        const percent = ((goal.current / goal.target) * 100).toFixed(1);
+        const percent = goal.target > 0 ? ((goal.current / goal.target) * 100).toFixed(1) : 0;
 
         const card = document.createElement('div');
         card.className = 'goal-card';
@@ -555,24 +540,47 @@ function initModals() {
     const btnEditInitial = document.getElementById('btnEditInitialBalance');
     const closeInitial = document.getElementById('closeInitialModal');
     const btnSaveInitial = document.getElementById('btnSaveInitialBalances');
+    const btnAddAccountInModal = document.getElementById('btnAddAccountInModal');
 
     if (btnEditInitial) {
         btnEditInitial.addEventListener('click', () => {
             renderInitialAccountModalForm();
             if (modalInitial) modalInitial.classList.add('active');
+            safeCreateIcons();
         });
     }
 
     if (closeInitial) closeInitial.addEventListener('click', () => modalInitial.classList.remove('active'));
 
+    if (btnAddAccountInModal) {
+        btnAddAccountInModal.addEventListener('click', () => {
+            const newAcc = {
+                id: 'acc-' + Date.now(),
+                name: 'Ví / Ngân Hàng Mới',
+                type: 'Tài khoản thanh toán',
+                initialBalance: 0,
+                note: ''
+            };
+            state.accounts.push(newAcc);
+            renderInitialAccountModalForm();
+            safeCreateIcons();
+        });
+    }
+
     if (btnSaveInitial) {
-        btnSaveInitial.addEventListener('click', () => {
+        const handleSaveAccounts = (e) => {
+            if (e) e.preventDefault();
+
             state.accounts.forEach(acc => {
                 const nameInput = document.querySelector(`.acc-name-input[data-acc-id="${acc.id}"]`);
+                const typeInput = document.querySelector(`.acc-type-input[data-acc-id="${acc.id}"]`);
                 const initInput = document.querySelector(`.initial-acc-input[data-acc-id="${acc.id}"]`);
                 
                 if (nameInput && nameInput.value.trim()) {
                     acc.name = nameInput.value.trim();
+                }
+                if (typeInput) {
+                    acc.type = typeInput.value;
                 }
                 if (initInput) {
                     const rawVal = initInput.value;
@@ -582,7 +590,10 @@ function initModals() {
 
             saveState();
             if (modalInitial) modalInitial.classList.remove('active');
-        });
+            alert('✅ Đã cập nhật ví và số dư đầu kỳ thành công!');
+        };
+
+        btnSaveInitial.addEventListener('click', handleSaveAccounts);
     }
 
     // Export Data Backup
@@ -617,13 +628,27 @@ function renderInitialAccountModalForm() {
     if (!formList) return;
     formList.innerHTML = '';
 
+    const types = ['Tài khoản thanh toán', 'Ví điện tử', 'Thẻ tín dụng', 'Tài khoản đầu tư', 'Tiền mặt'];
+
     state.accounts.forEach(acc => {
         const item = document.createElement('div');
-        item.style.cssText = 'background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; margin-bottom: 12px;';
+        item.style.cssText = 'background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; margin-bottom: 12px; position: relative;';
+        
+        let typeOpts = types.map(t => `<option value="${t}" ${t === acc.type ? 'selected' : ''}>${t}</option>`).join('');
+
         item.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <label style="font-weight: 600; color: #3B82F6; font-size: 0.85rem;">Tên Ngân Hàng / Ví</label>
+                <button type="button" class="btn-icon-sub danger delete-acc-btn" data-acc-id="${acc.id}" title="Xóa ví này"><i data-lucide="trash-2"></i> Xóa ví</button>
+            </div>
             <div class="form-group" style="margin-bottom: 8px;">
-                <label style="font-weight: 600; color: #3B82F6;">Tên Ngân Hàng / Ví</label>
                 <input type="text" class="custom-input acc-name-input" data-acc-id="${acc.id}" value="${acc.name}" placeholder="Ví dụ: Techcombank, VCB...">
+            </div>
+            <div class="form-group" style="margin-bottom: 8px;">
+                <label>Loại Tài Khoản</label>
+                <select class="custom-select acc-type-input" data-acc-id="${acc.id}">
+                    ${typeOpts}
+                </select>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
                 <label>Số Dư Đầu Kỳ (VNĐ)</label>
@@ -631,6 +656,21 @@ function renderInitialAccountModalForm() {
             </div>
         `;
         formList.appendChild(item);
+    });
+
+    formList.querySelectorAll('.delete-acc-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const accId = btn.getAttribute('data-acc-id');
+            if (state.accounts.length <= 1) {
+                alert('⚠️ Bạn phải giữ ít nhất 1 ví tài khoản!');
+                return;
+            }
+            if (confirm('Bạn có chắc muốn xóa ví này không? Các giao dịch gắn với ví này có thể cần phân bổ lại.')) {
+                state.accounts = state.accounts.filter(a => a.id !== accId);
+                renderInitialAccountModalForm();
+                safeCreateIcons();
+            }
+        });
     });
 }
 
