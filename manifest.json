@@ -1,0 +1,22 @@
+{
+  "name": "Quản Lý Tài Chính Cá Nhân",
+  "short_name": "Tài Chính",
+  "description": "Ứng dụng Quản Lý Tài Chính Cá Nhân 50/30/20 & Phân Bổ Thặng Dư Ròng",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#0F172A",
+  "icons": [
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

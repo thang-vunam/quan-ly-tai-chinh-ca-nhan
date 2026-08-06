@@ -5,11 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Quản Lý Tài Chính Cá Nhân</title>
     
-    <!-- PWA / iOS Meta Tags -->
+    <!-- PWA / iOS Meta & Icon Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Tài Chính">
     <meta name="theme-color" content="#0F172A">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,6 +40,7 @@
                 </div>
             </div>
             <div class="top-actions">
+                <button class="icon-btn" id="btnOpenGuideModal" title="Hướng dẫn sử dụng (HDSD)"><i data-lucide="help-circle"></i></button>
                 <button class="icon-btn" id="btnExportData" title="Sao lưu dữ liệu"><i data-lucide="download"></i></button>
                 <button class="icon-btn" id="btnResetData" title="Reset dữ liệu mẫu"><i data-lucide="rotate-ccw"></i></button>
                 <button class="icon-btn" id="btnQuickAddTop" title="Thêm giao dịch"><i data-lucide="plus"></i></button>
@@ -103,6 +107,20 @@
                             <span class="kpi-value" id="kpiRate">0%</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- SMART SURPLUS ALLOCATION CARD -->
+                <div id="surplusAllocationCard" class="section-card" style="display: none; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15)); border: 1px solid rgba(16, 185, 129, 0.4);">
+                    <div class="section-header" style="margin-bottom: 8px;">
+                        <h3><i data-lucide="sparkles" style="color: #10B981;"></i> Phân Bổ Thặng Dư Ròng</h3>
+                        <span class="badge" style="background: rgba(16, 185, 129, 0.25); color: #10B981;">Tháng có thặng dư</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 12px;">
+                        Kỳ này bạn có thặng dư <strong id="cardSurplusValue" style="color: #10B981; font-size: 1rem;">0 ₫</strong>. Hãy phân bổ số tiền này vào các Mục Tiêu Tài Chính!
+                    </p>
+                    <button class="btn-block primary" id="btnOpenAllocateSurplusModal" style="margin-top: 0; background: linear-gradient(135deg, #10B981, #059669);">
+                        <i data-lucide="target"></i> 🎯 Phân Bổ Vào Mục Tiêu Ngay
+                    </button>
                 </div>
 
                 <!-- 50/30/20 Budget Breakdown Section -->
@@ -228,6 +246,56 @@
             </button>
         </nav>
 
+        <!-- MODAL: USER GUIDE (HDSD) -->
+        <div class="modal-overlay" id="modalUserGuide">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i data-lucide="book-open" style="color: #3B82F6;"></i> Hướng Dẫn Sử Dụng App</h4>
+                    <button class="close-btn" id="closeGuideModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body" style="font-size: 0.88rem; line-height: 1.5; color: #CBD5E1;">
+                    <div style="margin-bottom: 16px; background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3B82F6; padding: 12px; border-radius: 8px;">
+                        <strong style="color: #F8FAFC;">💡 Triết lý ứng dụng:</strong><br>
+                        Quản lý tài chính cá nhân thông minh theo **Quy tắc 50/30/20** kết hợp phương pháp **Phân Bổ Thặng Dư Ròng** vào các mục tiêu dài hạn.
+                    </div>
+
+                    <h5 style="color: #3B82F6; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">1. Quy Tắc 50/30/20</h5>
+                    <p style="margin-bottom: 10px;">
+                        • <strong>50% Thiết yếu:</strong> Tiền nhà, điện nước, ăn uống cơ bản, đi lại.<br>
+                        • <strong>30% Mong muốn:</strong> Giải trí, mua sắm cá nhân, cà phê, du lịch.<br>
+                        • <strong>20% Tiết kiệm & Đầu tư:</strong> Quỹ dự phòng, chứng khoán, tích lũy.
+                    </p>
+
+                    <h5 style="color: #10B981; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">2. Phân Bổ Thặng Dư Ròng</h5>
+                    <p style="margin-bottom: 10px;">
+                        • Cuối mỗi tháng, nếu <strong>Thu Nhập > Chi Tiêu</strong>, trang Tổng Quan sẽ xuất hiện Thẻ Thặng Dư Ròng.<br>
+                        • Nhấn <strong>"Phân Bổ Vào Mục Tiêu Ngay"</strong> để chia số tiền dư đó vào các mục tiêu như <em>Quỹ dự phòng, Mua xe, Mua nhà...</em>
+                    </p>
+
+                    <h5 style="color: #F59E0B; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">3. Quản Lý Ví & Số Dư Đầu Kỳ</h5>
+                    <p style="margin-bottom: 10px;">
+                        • Vào tab <strong>Ví & Số Dư</strong> ➔ Bấm <strong>Quản Lý Ví & Đầu Kỳ</strong>.<br>
+                        • Tại đây bạn có thể <em>Thêm ví mới, Đổi tên ngân hàng, Nhập số dư đầu kỳ (kể cả 0đ) hoặc Xóa ví</em>.
+                    </p>
+
+                    <h5 style="color: #8B5CF6; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">4. Ghi Chép Giao Dịch (Sửa / Xóa)</h5>
+                    <p style="margin-bottom: 10px;">
+                        • Bấm nút <strong>+</strong> ở giữa để thêm giao dịch thu/chi mới.<br>
+                        • Trong tab <strong>Giao Dịch</strong>, mỗi dòng đều có nút <strong>Sửa</strong> và <strong>Xóa</strong> để điều chỉnh nếu có sai sót.
+                    </p>
+
+                    <h5 style="color: #EC4899; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">5. Cài Đặt Màn Hình Chính (Add to Home Screen)</h5>
+                    <p style="margin-bottom: 10px;">
+                        • <strong>Trên iPhone (Safari):</strong> Bấm biểu tượng <em>Chia sẻ (Share)</em> ➔ Chọn <strong>Add to Home Screen (Thêm vào Màn hình chính)</strong>.<br>
+                        • <strong>Trên Android (Chrome):</strong> Bấm dấu 3 chấm ➔ Chọn <strong>Cài đặt ứng dụng (Thêm vào Màn hình chính)</strong>.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-block primary" id="btnCloseGuideBottom">Đã Hiểu</button>
+                </div>
+            </div>
+        </div>
+
         <!-- MODAL: USER PROFILE & AVATAR UPLOAD -->
         <div class="modal-overlay" id="modalProfile">
             <div class="modal-content">
@@ -331,6 +399,70 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-block primary" id="btnSaveInitialBalances">Cập Nhật Ví & Số Dư</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: ADD / EDIT FINANCIAL GOAL -->
+        <div class="modal-overlay" id="modalGoal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="modalGoalTitle"><i data-lucide="target"></i> Tạo Mục Tiêu Tài Chính</h4>
+                    <button class="close-btn" id="closeGoalModal"><i data-lucide="x"></i></button>
+                </div>
+                <form id="formGoal" class="modal-body">
+                    <input type="hidden" id="editingGoalId" value="">
+
+                    <div class="form-group">
+                        <label>Tên mục tiêu</label>
+                        <input type="text" id="goalTitle" class="custom-input" placeholder="Ví dụ: Quỹ dự phòng khẩn cấp, Mua xe mới..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Số tiền mục tiêu cần đạt (VNĐ)</label>
+                        <input type="number" id="goalTarget" class="custom-input" placeholder="Ví dụ: 100000000" required min="100000" step="100000">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Số tiền đã tích lũy hiện tại (VNĐ)</label>
+                        <input type="number" id="goalCurrent" class="custom-input" placeholder="Ví dụ: 10000000" required min="0" step="100000">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Hạn hoàn thành (Tháng/Năm)</label>
+                        <input type="text" id="goalDeadline" class="custom-input" placeholder="Ví dụ: 12/2026" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ghi chú / Kế hoạch thực hiện</label>
+                        <input type="text" id="goalNote" class="custom-input" placeholder="Ví dụ: Gửi tiết kiệm online hàng tháng">
+                    </div>
+
+                    <button type="submit" id="btnSubmitGoalForm" class="btn-block primary">Lưu Mục Tiêu</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL: ALLOCATE SURPLUS TO GOALS -->
+        <div class="modal-overlay" id="modalAllocateSurplus">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i data-lucide="sparkles" style="color: #10B981;"></i> Phân Bổ Thặng Dư Vào Mục Tiêu</h4>
+                    <button class="close-btn" id="closeAllocateSurplusModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 14px; text-align: center; margin-bottom: 16px;">
+                        <div style="font-size: 0.8rem; color: #94A3B8;">Thặng Dư Ròng Kỳ Này:</div>
+                        <h3 id="allocSurplusTotal" style="color: #10B981; font-size: 1.3rem; margin-top: 2px;">0 ₫</h3>
+                        <div style="font-size: 0.78rem; color: #94A3B8; margin-top: 4px;">Còn lại chưa phân bổ: <strong id="allocSurplusRemaining" style="color: #F59E0B;">0 ₫</strong></div>
+                    </div>
+
+                    <div id="allocSurplusGoalList">
+                        <!-- Goal allocation inputs rendered dynamically -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-block primary" id="btnConfirmSurplusAllocation" style="background: linear-gradient(135deg, #10B981, #059669);">Xác Nhận Phân Bổ Vào Mục Tiêu</button>
                 </div>
             </div>
         </div>

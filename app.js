@@ -1,4 +1,4 @@
-// === PERSONAL FINANCE APP V4 JS LOGIC (CLEAN INITIAL TRANSACTIONS STATE FOR PRODUCTION) ===
+// === PERSONAL FINANCE APP V4 JS LOGIC (WITH FULL SURPLUS ALLOCATION & HDSD GUIDE) ===
 
 // --- DEFAULT INITIAL STATE (CLEAN & READY FOR REAL TRANSACTIONS) ---
 const DEFAULT_STATE = {
@@ -49,6 +49,7 @@ function loadState() {
         if (saved) {
             const parsed = JSON.parse(saved);
             if (!parsed.userProfile) parsed.userProfile = { name: 'Tài Chính Cá Nhân', avatar: '' };
+            if (!parsed.goals) parsed.goals = [];
             return parsed;
         }
     } catch(e) {
@@ -66,9 +67,10 @@ function saveState() {
     renderApp();
 }
 
-// Global Chart instance
+// Global Variables
 let chartInstance = null;
 let tempAvatarBase64 = '';
+let currentMonthNetSurplus = 0;
 
 // Helpers
 function formatVND(amount) {
@@ -171,12 +173,26 @@ function renderDashboard() {
     const totalIncome = filteredTx.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
     const totalExpense = filteredTx.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
     const netSavings = totalIncome - totalExpense;
+    currentMonthNetSurplus = netSavings;
+
     const savingsRate = totalIncome > 0 ? ((netSavings / totalIncome) * 100).toFixed(1) : 0;
 
     if (document.getElementById('kpiIncome')) document.getElementById('kpiIncome').textContent = formatVND(totalIncome);
     if (document.getElementById('kpiExpense')) document.getElementById('kpiExpense').textContent = formatVND(totalExpense);
     if (document.getElementById('kpiNet')) document.getElementById('kpiNet').textContent = formatVND(netSavings);
     if (document.getElementById('kpiRate')) document.getElementById('kpiRate').textContent = savingsRate + '%';
+
+    // SMART SURPLUS ALLOCATION CARD DISPLAY
+    const surplusCard = document.getElementById('surplusAllocationCard');
+    const cardSurplusVal = document.getElementById('cardSurplusValue');
+    if (surplusCard && cardSurplusVal) {
+        if (netSavings > 0) {
+            surplusCard.style.display = 'block';
+            cardSurplusVal.textContent = formatVND(netSavings);
+        } else {
+            surplusCard.style.display = 'none';
+        }
+    }
 
     // 50/30/20 Rule Calculations
     const expenseNeeds = filteredTx.filter(t => t.type === 'expense' && t.ruleGroup.includes('Thiết yếu')).reduce((s, t) => s + t.amount, 0);
@@ -242,7 +258,7 @@ function renderChart(year) {
     } catch(e) {}
 }
 
-// === TRANSACTIONS LOG (WITH EDIT & DELETE ACTIONS) ===
+// === TRANSACTIONS LOG ===
 function renderTransactions() {
     const container = document.getElementById('transactionList');
     if (!container) return;
@@ -376,11 +392,16 @@ function renderAccounts() {
     }
 }
 
-// === GOALS LOGIC ===
+// === GOALS LOGIC (WITH SURPLUS ALLOCATION & FULL EDIT/DELETE) ===
 function renderGoals() {
     const container = document.getElementById('goalsList');
     if (!container) return;
     container.innerHTML = '';
+
+    if (!state.goals || state.goals.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: #94A3B8; padding: 24px; font-size: 0.9rem;">Chưa có mục tiêu tài chính nào. Bấm nút <b>Tạo Mục Tiêu</b> để thêm mới!</div>';
+        return;
+    }
 
     state.goals.forEach(goal => {
         const percent = goal.target > 0 ? ((goal.current / goal.target) * 100).toFixed(1) : 0;
@@ -393,19 +414,82 @@ function renderGoals() {
                 <span class="goal-percent">${percent}%</span>
             </div>
             <div class="rule-title-row" style="margin-top: 4px;">
-                <span style="font-size: 0.78rem; color: #94A3B8;">Hạn: ${goal.deadline}</span>
+                <span style="font-size: 0.78rem; color: #94A3B8;">Hạn: ${goal.deadline} • <span style="opacity: 0.75">${goal.note || ''}</span></span>
                 <span style="font-size: 0.82rem; font-weight: 600;">${formatVND(goal.current)} / ${formatVND(goal.target)}</span>
             </div>
             <div class="progress-bar-bg" style="margin-top: 8px;">
                 <div class="progress-bar-fill savings" style="width: ${Math.min(100, percent)}%"></div>
             </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+                <button class="btn-icon-sub edit-goal-btn" data-id="${goal.id}" title="Sửa mục tiêu"><i data-lucide="edit-2"></i> Sửa</button>
+                <button class="btn-icon-sub danger delete-goal-btn" data-id="${goal.id}" title="Xóa mục tiêu"><i data-lucide="trash-2"></i> Xóa</button>
+            </div>
         `;
         container.appendChild(card);
     });
+
+    container.querySelectorAll('.delete-goal-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const goalId = btn.getAttribute('data-id');
+            deleteGoal(goalId);
+        });
+    });
+
+    container.querySelectorAll('.edit-goal-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const goalId = btn.getAttribute('data-id');
+            openEditGoalModal(goalId);
+        });
+    });
+}
+
+function deleteGoal(goalId) {
+    if (confirm('Bạn có chắc chắn muốn XÓA mục tiêu này không?')) {
+        state.goals = state.goals.filter(g => g.id !== goalId);
+        saveState();
+    }
+}
+
+function openEditGoalModal(goalId) {
+    const goal = state.goals.find(g => g.id === goalId);
+    if (!goal) return;
+
+    document.getElementById('editingGoalId').value = goal.id;
+    document.getElementById('modalGoalTitle').innerHTML = '<i data-lucide="edit-3"></i> Chỉnh Sửa Mục Tiêu';
+    document.getElementById('btnSubmitGoalForm').textContent = 'Lưu Thay Đổi';
+
+    document.getElementById('goalTitle').value = goal.title;
+    document.getElementById('goalTarget').value = goal.target;
+    document.getElementById('goalCurrent').value = goal.current;
+    document.getElementById('goalDeadline').value = goal.deadline;
+    document.getElementById('goalNote').value = goal.note || '';
+
+    const modalGoal = document.getElementById('modalGoal');
+    if (modalGoal) modalGoal.classList.add('active');
+    safeCreateIcons();
 }
 
 // === MODALS & FORM HANDLING ===
 function initModals() {
+    // HDSD USER GUIDE MODAL
+    const modalUserGuide = document.getElementById('modalUserGuide');
+    const btnOpenGuideModal = document.getElementById('btnOpenGuideModal');
+    const closeGuideModal = document.getElementById('closeGuideModal');
+    const btnCloseGuideBottom = document.getElementById('btnCloseGuideBottom');
+
+    if (btnOpenGuideModal) {
+        btnOpenGuideModal.addEventListener('click', () => {
+            if (modalUserGuide) modalUserGuide.classList.add('active');
+            safeCreateIcons();
+        });
+    }
+
+    [closeGuideModal, btnCloseGuideBottom].forEach(btn => {
+        if (btn) btn.addEventListener('click', () => modalUserGuide.classList.remove('active'));
+    });
+
     // PROFILE & AVATAR MODAL
     const modalProfile = document.getElementById('modalProfile');
     const btnOpenProfileModal = document.getElementById('btnOpenProfileModal');
@@ -596,6 +680,88 @@ function initModals() {
         btnSaveInitial.addEventListener('click', handleSaveAccounts);
     }
 
+    // FINANCIAL GOAL MODAL & FORMS
+    const modalGoal = document.getElementById('modalGoal');
+    const btnAddGoalModal = document.getElementById('btnAddGoalModal');
+    const closeGoalModal = document.getElementById('closeGoalModal');
+    const formGoal = document.getElementById('formGoal');
+
+    if (btnAddGoalModal) {
+        btnAddGoalModal.addEventListener('click', () => {
+            document.getElementById('editingGoalId').value = '';
+            document.getElementById('modalGoalTitle').innerHTML = '<i data-lucide="target"></i> Tạo Mục Tiêu Tài Chính Mới';
+            document.getElementById('btnSubmitGoalForm').textContent = 'Lưu Mục Tiêu';
+            formGoal.reset();
+            if (modalGoal) modalGoal.classList.add('active');
+            safeCreateIcons();
+        });
+    }
+
+    if (closeGoalModal) closeGoalModal.addEventListener('click', () => modalGoal.classList.remove('active'));
+
+    if (formGoal) {
+        formGoal.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const editingId = document.getElementById('editingGoalId').value;
+            const title = document.getElementById('goalTitle').value.trim();
+            const target = parseFloat(document.getElementById('goalTarget').value) || 0;
+            const current = parseFloat(document.getElementById('goalCurrent').value) || 0;
+            const deadline = document.getElementById('goalDeadline').value.trim();
+            const note = document.getElementById('goalNote').value.trim();
+
+            if (editingId) {
+                const index = state.goals.findIndex(g => g.id === editingId);
+                if (index !== -1) {
+                    state.goals[index] = { id: editingId, title, target, current, deadline, note };
+                }
+            } else {
+                const newGoal = {
+                    id: 'g-' + Date.now(),
+                    title, target, current, deadline, note
+                };
+                state.goals.push(newGoal);
+            }
+
+            saveState();
+            if (modalGoal) modalGoal.classList.remove('active');
+            formGoal.reset();
+        });
+    }
+
+    // SMART SURPLUS ALLOCATION MODAL
+    const modalAllocateSurplus = document.getElementById('modalAllocateSurplus');
+    const btnOpenAllocateSurplusModal = document.getElementById('btnOpenAllocateSurplusModal');
+    const closeAllocateSurplusModal = document.getElementById('closeAllocateSurplusModal');
+    const btnConfirmSurplusAllocation = document.getElementById('btnConfirmSurplusAllocation');
+
+    if (btnOpenAllocateSurplusModal) {
+        btnOpenAllocateSurplusModal.addEventListener('click', () => {
+            renderSurplusAllocationForm();
+            if (modalAllocateSurplus) modalAllocateSurplus.classList.add('active');
+            safeCreateIcons();
+        });
+    }
+
+    if (closeAllocateSurplusModal) {
+        closeAllocateSurplusModal.addEventListener('click', () => modalAllocateSurplus.classList.remove('active'));
+    }
+
+    if (btnConfirmSurplusAllocation) {
+        btnConfirmSurplusAllocation.addEventListener('click', () => {
+            state.goals.forEach(goal => {
+                const allocInput = document.querySelector(`.alloc-goal-input[data-goal-id="${goal.id}"]`);
+                if (allocInput) {
+                    const allocVal = parseFloat(allocInput.value) || 0;
+                    goal.current = (goal.current || 0) + allocVal;
+                }
+            });
+
+            saveState();
+            if (modalAllocateSurplus) modalAllocateSurplus.classList.remove('active');
+            alert('🎉 Đã phân bổ thặng dư ròng vào các Mục Tiêu Tài Chính thành công!');
+        });
+    }
+
     // Export Data Backup
     const btnExp = document.getElementById('btnExportData');
     if (btnExp) {
@@ -619,6 +785,63 @@ function initModals() {
                 saveState();
             }
         });
+    }
+}
+
+// Render dynamic goal allocation inputs inside Surplus Modal
+function renderSurplusAllocationForm() {
+    const totalElem = document.getElementById('allocSurplusTotal');
+    const remElem = document.getElementById('allocSurplusRemaining');
+    const container = document.getElementById('allocSurplusGoalList');
+    if (!container) return;
+
+    if (totalElem) totalElem.textContent = formatVND(currentMonthNetSurplus);
+    if (remElem) remElem.textContent = formatVND(currentMonthNetSurplus);
+
+    container.innerHTML = '';
+
+    if (!state.goals || state.goals.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: #94A3B8; padding: 20px;">Bạn chưa tạo Mục tiêu nào. Hãy vào tab Mục Tiêu tạo mục tiêu trước!</div>';
+        return;
+    }
+
+    state.goals.forEach(goal => {
+        const item = document.createElement('div');
+        item.style.cssText = 'background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; margin-bottom: 12px;';
+        item.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-weight: 600; font-size: 0.9rem;">${goal.title}</span>
+                <span style="font-size: 0.78rem; color: #3B82F6;">Đã tích: ${formatVND(goal.current)} / ${formatVND(goal.target)}</span>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Số tiền phân bổ tháng này (VNĐ)</label>
+                <input type="number" class="custom-input alloc-goal-input" data-goal-id="${goal.id}" placeholder="0" min="0" step="100000">
+            </div>
+        `;
+        container.appendChild(item);
+    });
+
+    // Real-time remaining surplus calculation
+    container.querySelectorAll('.alloc-goal-input').forEach(input => {
+        input.addEventListener('input', updateRemainingSurplusCalc);
+    });
+}
+
+function updateRemainingSurplusCalc() {
+    const remElem = document.getElementById('allocSurplusRemaining');
+    if (!remElem) return;
+
+    let allocatedSum = 0;
+    document.querySelectorAll('.alloc-goal-input').forEach(input => {
+        allocatedSum += parseFloat(input.value) || 0;
+    });
+
+    const rem = currentMonthNetSurplus - allocatedSum;
+    remElem.textContent = formatVND(rem);
+    if (rem < 0) {
+        remElem.style.color = '#EF4444';
+    } else {
+        remElem.style.color = '#F59E0B';
     }
 }
 
