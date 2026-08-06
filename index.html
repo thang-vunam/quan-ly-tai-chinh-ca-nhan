@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Quản Lý Tài Chính Cá Nhân</title>
+    
+    <!-- PWA / iOS Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tài Chính">
+    <meta name="theme-color" content="#0F172A">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app" class="app-container">
+        <!-- Top App Bar (iOS Safe Area Padding) -->
+        <header class="top-bar">
+            <div class="user-profile" id="btnOpenProfileModal" title="Đổi Avatar & Tên">
+                <div class="avatar" id="headerAvatarContainer"><i data-lucide="user"></i></div>
+                <div>
+                    <div class="greeting">Xin chào 👋</div>
+                    <div class="user-name" id="headerUserName">Tài Chính Cá Nhân</div>
+                </div>
+            </div>
+            <div class="top-actions">
+                <button class="icon-btn" id="btnExportData" title="Sao lưu dữ liệu"><i data-lucide="download"></i></button>
+                <button class="icon-btn" id="btnResetData" title="Reset dữ liệu mẫu"><i data-lucide="rotate-ccw"></i></button>
+                <button class="icon-btn" id="btnQuickAddTop" title="Thêm giao dịch"><i data-lucide="plus"></i></button>
+            </div>
+        </header>
+
+        <!-- Main View Container -->
+        <main class="main-content">
+            <!-- TAB 1: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-page active">
+                <!-- Month/Year Filter Selector -->
+                <div class="filter-card">
+                    <div class="filter-label"><i data-lucide="calendar"></i> Kỳ Báo Cáo:</div>
+                    <div class="filter-controls">
+                        <select id="selectMonth" class="custom-select">
+                            <option value="all">Cả Năm</option>
+                            <option value="1">Tháng 01</option>
+                            <option value="2">Tháng 02</option>
+                            <option value="3">Tháng 03</option>
+                            <option value="4">Tháng 04</option>
+                            <option value="5">Tháng 05</option>
+                            <option value="6">Tháng 06</option>
+                            <option value="7">Tháng 07</option>
+                            <option value="8">Tháng 08</option>
+                            <option value="9">Tháng 09</option>
+                            <option value="10">Tháng 10</option>
+                            <option value="11">Tháng 11</option>
+                            <option value="12">Tháng 12</option>
+                        </select>
+                        <select id="selectYear" class="custom-select">
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- KPI Summary Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card income">
+                        <div class="kpi-icon"><i data-lucide="arrow-down-left"></i></div>
+                        <div class="kpi-info">
+                            <span class="kpi-title">Tổng Thu Nhập</span>
+                            <span class="kpi-value" id="kpiIncome">0 ₫</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card expense">
+                        <div class="kpi-icon"><i data-lucide="arrow-up-right"></i></div>
+                        <div class="kpi-info">
+                            <span class="kpi-title">Tổng Chi Tiêu</span>
+                            <span class="kpi-value" id="kpiExpense">0 ₫</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card net">
+                        <div class="kpi-icon"><i data-lucide="wallet"></i></div>
+                        <div class="kpi-info">
+                            <span class="kpi-title">Thặng Dư Ròng</span>
+                            <span class="kpi-value" id="kpiNet">0 ₫</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card rate">
+                        <div class="kpi-icon"><i data-lucide="piggy-bank"></i></div>
+                        <div class="kpi-info">
+                            <span class="kpi-title">Tỷ Lệ Tích Lũy</span>
+                            <span class="kpi-value" id="kpiRate">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 50/30/20 Budget Breakdown Section -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i data-lucide="pie-chart"></i> Ngân Sách Quy Tắc 50/30/20</h3>
+                        <span class="badge" id="budgetStatusBadge">Trong hạn mức</span>
+                    </div>
+
+                    <div class="rule-progress-list">
+                        <!-- 50% Needs -->
+                        <div class="rule-item">
+                            <div class="rule-title-row">
+                                <span class="rule-name"><span class="dot needs"></span> Thiết yếu (50%)</span>
+                                <span class="rule-amount" id="ruleNeedsAmount">0 / 0 ₫</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill needs" id="ruleNeedsBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- 30% Wants -->
+                        <div class="rule-item">
+                            <div class="rule-title-row">
+                                <span class="rule-name"><span class="dot wants"></span> Mong muốn (30%)</span>
+                                <span class="rule-amount" id="ruleWantsAmount">0 / 0 ₫</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill wants" id="ruleWantsBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- 20% Savings -->
+                        <div class="rule-item">
+                            <div class="rule-title-row">
+                                <span class="rule-name"><span class="dot savings"></span> Tiết kiệm & Đầu tư (20%)</span>
+                                <span class="rule-amount" id="ruleSavingsAmount">0 / 0 ₫</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill savings" id="ruleSavingsBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visual Charts Section -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i data-lucide="bar-chart-3"></i> Biểu Đồ So Sánh Thu - Chi</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="incomeExpenseChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: TRANSACTIONS LOG -->
+            <section id="tab-transactions" class="tab-page">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i data-lucide="receipt"></i> Nhật Ký Giao Dịch</h3>
+                        <button class="btn-sm primary" id="btnOpenAddModal"><i data-lucide="plus"></i> Thêm Giao Dịch</button>
+                    </div>
+                    <div class="tx-list" id="transactionList">
+                        <!-- Items rendered by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: ACCOUNTS & WALLETS -->
+            <section id="tab-accounts" class="tab-page">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i data-lucide="landmark"></i> Số Dư Tài Khoản & Ví</h3>
+                        <button class="btn-sm secondary" id="btnEditInitialBalance"><i data-lucide="edit-3"></i> Quản Lý Ví & Đầu Kỳ</button>
+                    </div>
+
+                    <div class="accounts-grid" id="accountsList">
+                        <!-- Account cards rendered by JS -->
+                    </div>
+
+                    <div class="total-asset-box">
+                        <span>Tổng Tài Sản Khả Dụng:</span>
+                        <strong id="totalAssetValue">0 ₫</strong>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: GOALS -->
+            <section id="tab-goals" class="tab-page">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i data-lucide="target"></i> Mục Tiêu Tài Chính Dài Hạn</h3>
+                        <button class="btn-sm primary" id="btnAddGoalModal"><i data-lucide="plus"></i> Tạo Mục Tiêu</button>
+                    </div>
+                    <div class="goals-list" id="goalsList">
+                        <!-- Goals rendered by JS -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Floating Quick Add Action Button -->
+        <button class="fab-btn" id="fabAddTx"><i data-lucide="plus"></i></button>
+
+        <!-- Bottom Navigation Bar (iOS Style) -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-tab="tab-dashboard">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Tổng Quan</span>
+            </button>
+            <button class="nav-item" data-tab="tab-transactions">
+                <i data-lucide="list-checks"></i>
+                <span>Giao Dịch</span>
+            </button>
+            <button class="nav-item" data-tab="tab-accounts">
+                <i data-lucide="credit-card"></i>
+                <span>Ví & Số Dư</span>
+            </button>
+            <button class="nav-item" data-tab="tab-goals">
+                <i data-lucide="compass"></i>
+                <span>Mục Tiêu</span>
+            </button>
+        </nav>
+
+        <!-- MODAL: USER PROFILE & AVATAR UPLOAD -->
+        <div class="modal-overlay" id="modalProfile">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i data-lucide="user-check"></i> Hồ Sơ Cá Nhân & Avatar</h4>
+                    <button class="close-btn" id="closeProfileModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body" style="text-align: center;">
+                    <!-- Avatar Upload Picker Container -->
+                    <div class="avatar-upload-box" id="btnTriggerAvatarUpload">
+                        <div class="avatar-large" id="profileAvatarPreview">
+                            <i data-lucide="user"></i>
+                        </div>
+                        <div class="avatar-badge"><i data-lucide="camera"></i></div>
+                    </div>
+                    <input type="file" id="inputAvatarFile" accept="image/*" style="display: none;">
+                    <p style="font-size: 0.78rem; color: #94A3B8; margin-top: 8px;">Nhấn vào hình để chọn ảnh từ thư viện iPhone / Máy tính</p>
+
+                    <div class="form-group" style="text-align: left; margin-top: 18px;">
+                        <label>Tên hiển thị của bạn</label>
+                        <input type="text" id="inputUserName" class="custom-input" placeholder="Nhập tên của bạn...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-block primary" id="btnSaveProfile">Lưu Hồ Sơ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: ADD / EDIT TRANSACTION -->
+        <div class="modal-overlay" id="modalAddTx">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="modalTxTitle"><i data-lucide="plus-circle"></i> Thêm Giao Dịch Mới</h4>
+                    <button class="close-btn" id="closeAddTxModal"><i data-lucide="x"></i></button>
+                </div>
+                <form id="formAddTx" class="modal-body">
+                    <input type="hidden" id="editingTxId" value="">
+
+                    <div class="form-group">
+                        <label>Loại giao dịch</label>
+                        <div class="segmented-control">
+                            <input type="radio" name="txType" value="expense" id="typeExpense" checked>
+                            <label for="typeExpense" class="segment expense">Chi Tiêu</label>
+                            <input type="radio" name="txType" value="income" id="typeIncome">
+                            <label for="typeIncome" class="segment income">Thu Nhập</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Số tiền (VNĐ)</label>
+                        <input type="number" id="txAmount" class="custom-input" placeholder="Ví dụ: 150000" required min="1" step="1000">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Danh mục</label>
+                        <select id="txCategory" class="custom-select" required>
+                            <!-- Dynamically loaded -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Phân loại (Tự động theo 50/30/20)</label>
+                        <input type="text" id="txRuleGroup" class="custom-input disabled-input" readonly placeholder="Tự động nhảy nhóm...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tài khoản / Ví</label>
+                        <select id="txAccount" class="custom-select" required>
+                            <!-- Dynamically loaded -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ngày thực hiện</label>
+                        <input type="date" id="txDate" class="custom-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Diễn giải / Ghi chú</label>
+                        <input type="text" id="txNote" class="custom-input" placeholder="Ví dụ: Ăn trưa với bạn bè">
+                    </div>
+
+                    <button type="submit" id="btnSubmitTxForm" class="btn-block primary">Lưu Giao Dịch</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL: INITIAL BALANCE & WALLETS -->
+        <div class="modal-overlay" id="modalInitialBalance">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i data-lucide="edit"></i> Quản Lý Ví & Số Dư Đầu Kỳ</h4>
+                    <button class="close-btn" id="closeInitialModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body" id="initialBalanceFormList">
+                    <!-- Loaded dynamically -->
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-block primary" id="btnSaveInitialBalances">Cập Nhật Ví & Số Dư</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>
