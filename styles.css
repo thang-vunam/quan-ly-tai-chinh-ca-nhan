@@ -1,4 +1,4 @@
-/* === MODERN DARK GLASSMORPHISM DESIGN SYSTEM (WITH PERFECT Z-INDEX PIN & OTP RECOVERY FIX) === */
+/* === MODERN DARK GLASSMORPHISM DESIGN SYSTEM (WITH STABLE FLICKER-FREE PIN & OTP RECOVERY STYLES) === */
 :root {
     --bg-dark: #090D16;
     --bg-card: rgba(18, 24, 38, 0.85);
@@ -663,7 +663,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     z-index: 200;
@@ -672,9 +672,12 @@ body {
 }
 .modal-overlay.active { display: flex; }
 
-/* FORGOT PIN MODAL PLACED ON TOP OF PIN LOCK SCREEN */
+/* FORGOT PIN MODAL PLACED STABLY ON TOP WITHOUT FLICKER */
 #modalForgotPin {
     z-index: 10000 !important;
+    background: rgba(9, 13, 22, 0.98) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
 .modal-content {
@@ -763,16 +766,14 @@ body {
 .segmented-control input:checked + .segment.expense { background: var(--danger); color: #FFF; }
 .segmented-control input:checked + .segment.income { background: var(--success); color: #FFF; }
 
-/* === PIN LOCK OVERLAY & KEYPAD STYLES === */
+/* === STABLE FLICKER-FREE PIN LOCK OVERLAY & KEYPAD STYLES === */
 .pin-lock-overlay {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(9, 13, 22, 0.96);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
+    background: rgba(9, 13, 22, 0.98);
     z-index: 999;
     display: flex;
     align-items: center;
