@@ -1,4 +1,4 @@
-// === PERSONAL FINANCE APP V4/V5 JS LOGIC (CLEAN SAPPHIRE THEME & ALL CORE FEATURES PRESERVED 100%) ===
+// === PERSONAL FINANCE APP V4/V5 JS LOGIC (CLEAN SAPPHIRE THEME & RESET TO DEFAULT SYSTEM) ===
 
 // --- DEFAULT INITIAL STATE ---
 const DEFAULT_STATE = {
@@ -953,6 +953,18 @@ function initModals() {
         if (btn) btn.addEventListener('click', () => modalUserGuide.classList.remove('active'));
     });
 
+    // RESET TO DEFAULT BUTTON ACTION IN TOP BAR
+    const btnReset = document.getElementById('btnResetData');
+    if (btnReset) {
+        btnReset.addEventListener('click', () => {
+            if (confirm('⚠️ BẠN CÓ CHẮC CHẮN MUỐN ĐẶT LẠI ỨNG DỤNG VỀ TRẠNG THÁI MẶC ĐỊNH BAN ĐẦU KHÔNG?\n\n(Tất cả nhật ký giao dịch và số dư ví sẽ được khôi phục về ban đầu. Hành động này không thể hoàn tác!)')) {
+                state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+                saveState();
+                alert('🎉 Đã đặt lại ứng dụng về trạng thái mặc định ban đầu thành công!');
+            }
+        });
+    }
+
     // PROFILE, AVATAR, PIN & BIOMETRICS MODAL
     const modalProfile = document.getElementById('modalProfile');
     const btnOpenProfileModal = document.getElementById('btnOpenProfileModal');
@@ -1291,31 +1303,6 @@ function initModals() {
             saveState();
             if (modalAllocateSurplus) modalAllocateSurplus.classList.remove('active');
             alert('🎉 Đã phân bổ thặng dư ròng vào các Mục Tiêu Tài Chính thành công!');
-        });
-    }
-
-    // Export Data Backup
-    const btnExp = document.getElementById('btnExportData');
-    if (btnExp) {
-        btnExp.addEventListener('click', () => {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
-            const dlAnchor = document.createElement('a');
-            dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", `Sao_Luu_Tai_Chinh_${new Date().toISOString().slice(0,10)}.json`);
-            document.body.appendChild(dlAnchor);
-            dlAnchor.click();
-            dlAnchor.remove();
-        });
-    }
-
-    // Reset Data Button
-    const btnReset = document.getElementById('btnResetData');
-    if (btnReset) {
-        btnReset.addEventListener('click', () => {
-            if (confirm('Bạn có muốn đặt lại dữ liệu về mặc định ban đầu không?')) {
-                state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-                saveState();
-            }
         });
     }
 }
