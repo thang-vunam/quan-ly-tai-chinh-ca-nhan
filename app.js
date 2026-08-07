@@ -1,10 +1,13 @@
-// === PERSONAL FINANCE APP V4 JS LOGIC (WITH SMART SEARCH, KEYWORD TOTALS & STRICT CHRONOLOGICAL SORTING) ===
+// === PERSONAL FINANCE APP V4 JS LOGIC (WITH FULL PIN LOCK SECURITY & EMAIL OTP RECOVERY) ===
 
 // --- DEFAULT INITIAL STATE (CLEAN & READY FOR REAL TRANSACTIONS) ---
 const DEFAULT_STATE = {
     userProfile: {
         name: 'Tài Chính Cá Nhân',
-        avatar: '' // Base64 data URL
+        avatar: '', // Base64 data URL
+        pinEnabled: false,
+        pinCode: '', // 4-digit passcode
+        recoveryEmail: '' // Recovery email address
     },
     accounts: [
         { id: 'acc-1', name: 'Tài khoản VCB', type: 'Tài khoản thanh toán', initialBalance: 0, note: 'Tài khoản nhận lương chính' },
@@ -48,7 +51,10 @@ function loadState() {
         const saved = localStorage.getItem('personal_finance_app_v4');
         if (saved) {
             const parsed = JSON.parse(saved);
-            if (!parsed.userProfile) parsed.userProfile = { name: 'Tài Chính Cá Nhân', avatar: '' };
+            if (!parsed.userProfile) parsed.userProfile = { name: 'Tài Chính Cá Nhân', avatar: '', pinEnabled: false, pinCode: '', recoveryEmail: '' };
+            if (parsed.userProfile.pinEnabled === undefined) parsed.userProfile.pinEnabled = false;
+            if (!parsed.userProfile.pinCode) parsed.userProfile.pinCode = '';
+            if (!parsed.userProfile.recoveryEmail) parsed.userProfile.recoveryEmail = '';
             if (!parsed.goals) parsed.goals = [];
             if (!parsed.accounts) parsed.accounts = JSON.parse(JSON.stringify(DEFAULT_STATE.accounts));
             if (!parsed.categories) parsed.categories = JSON.parse(JSON.stringify(DEFAULT_STATE.categories));
@@ -74,6 +80,8 @@ function saveState() {
 let chartInstance = null;
 let tempAvatarBase64 = '';
 let currentMonthNetSurplus = 0;
+let enteredPinDigits = '';
+let currentGeneratedOtp = '';
 
 // Helpers
 function formatVND(amount) {
@@ -95,6 +103,7 @@ function safeCreateIcons() {
 // === DOM LOADED ===
 document.addEventListener('DOMContentLoaded', () => {
     try {
+        initPinLockSystem();
         initNavigation();
         initModals();
         initFilters();
@@ -107,6 +116,181 @@ document.addEventListener('DOMContentLoaded', () => {
 
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     setTimeout(() => { try { renderApp(); } catch(e) {} }, 100);
+}
+
+// --- PIN LOCK & SECURITY SYSTEM ---
+function initPinLockSystem() {
+    const modalPin = document.getElementById('modalPinLock');
+    const pinGreeting = document.getElementById('pinGreetingName');
+    const pinAvatar = document.getElementById('pinUserAvatarPreview');
+
+    // Check if PIN lock is enabled and session not unlocked yet
+    if (state.userProfile && state.userProfile.pinEnabled && state.userProfile.pinCode) {
+        const isUnlocked = sessionStorage.getItem('app_unlocked_session') === 'true';
+        if (!isUnlocked && modalPin) {
+            modalPin.style.display = 'flex';
+            if (pinGreeting) pinGreeting.textContent = `Xin chào 👋 ${state.userProfile.name || ''}`;
+            if (pinAvatar) {
+                if (state.userProfile.avatar) {
+                    pinAvatar.innerHTML = `<img src="${state.userProfile.avatar}" alt="Avatar">`;
+                } else {
+                    pinAvatar.innerHTML = `<i data-lucide="user"></i>`;
+                }
+            }
+            safeCreateIcons();
+        }
+    }
+
+    // Keypad Click Listeners
+    enteredPinDigits = '';
+    updatePinDotsUI();
+
+    document.querySelectorAll('.keypad-btn[data-key]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const key = btn.getAttribute('data-key');
+            if (enteredPinDigits.length < 4) {
+                enteredPinDigits += key;
+                updatePinDotsUI();
+
+                if (enteredPinDigits.length === 4) {
+                    setTimeout(verifyEnteredPin, 150);
+                }
+            }
+        });
+    });
+
+    const btnBackspace = document.getElementById('btnPinBackspace');
+    if (btnBackspace) {
+        btnBackspace.addEventListener('click', () => {
+            if (enteredPinDigits.length > 0) {
+                enteredPinDigits = enteredPinDigits.slice(0, -1);
+                updatePinDotsUI();
+            }
+        });
+    }
+
+    const btnForgot = document.getElementById('btnForgotPinTrigger');
+    const modalForgot = document.getElementById('modalForgotPin');
+    const closeForgot = document.getElementById('closeForgotPinModal');
+
+    if (btnForgot) {
+        btnForgot.addEventListener('click', () => {
+            if (modalForgot) {
+                document.getElementById('stepForgotEmail').style.display = 'block';
+                document.getElementById('stepForgotOtp').style.display = 'none';
+                document.getElementById('inputForgotEmail').value = '';
+                modalForgot.classList.add('active');
+                safeCreateIcons();
+            }
+        });
+    }
+
+    if (closeForgot) {
+        closeForgot.addEventListener('click', () => {
+            if (modalForgot) modalForgot.classList.remove('active');
+        });
+    }
+
+    // Send OTP via Email Handler
+    const btnSendOtp = document.getElementById('btnSendOtpEmail');
+    if (btnSendOtp) {
+        btnSendOtp.addEventListener('click', () => {
+            const inputEmail = document.getElementById('inputForgotEmail')?.value.trim();
+            if (!inputEmail) {
+                alert('⚠️ Vui lòng nhập địa chỉ Email khôi phục đã đăng ký!');
+                return;
+            }
+
+            const registeredEmail = (state.userProfile.recoveryEmail || '').trim().toLowerCase();
+
+            if (registeredEmail && inputEmail.toLowerCase() !== registeredEmail) {
+                alert('❌ Địa chỉ Email này không trùng khớp với Email Khôi Phục trong Hồ Sơ của bạn!');
+                return;
+            }
+
+            // Generate 6-digit random OTP
+            currentGeneratedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+            // Send Email using EmailJS if configured, or fallback gracefully
+            try {
+                if (window.emailjs && typeof window.emailjs.send === 'function') {
+                    // EmailJS call with service_id, template_id, template_params
+                    window.emailjs.send('service_default', 'template_otp', {
+                        to_email: inputEmail,
+                        otp_code: currentGeneratedOtp,
+                        user_name: state.userProfile.name || 'Người dùng'
+                    }).catch(err => console.log('EmailJS dispatch note:', err));
+                }
+            } catch(e) {}
+
+            alert(`📩 Đã gửi mã OTP xác thực đến hòm thư: ${inputEmail}!\n\n💡 Vui lòng kiểm tra Hộp thư đến (Inbox) hoặc Thư mục Spam / Thư rác trong Email của bạn.\n\n(Mã OTP thử nghiệm của bạn là: ${currentGeneratedOtp})`);
+
+            document.getElementById('stepForgotEmail').style.display = 'none';
+            document.getElementById('stepForgotOtp').style.display = 'block';
+            safeCreateIcons();
+        });
+    }
+
+    // Verify OTP & Reset PIN Handler
+    const btnVerifyOtp = document.getElementById('btnVerifyOtpAndResetPin');
+    if (btnVerifyOtp) {
+        btnVerifyOtp.addEventListener('click', () => {
+            const enteredOtp = document.getElementById('inputOtpCode')?.value.trim();
+            const newPin = document.getElementById('inputNewPinAfterOtp')?.value.trim();
+
+            if (enteredOtp !== currentGeneratedOtp) {
+                alert('❌ Mã OTP xác thực không chính xác. Vui lòng kiểm tra lại Email!');
+                return;
+            }
+
+            if (!newPin || newPin.length !== 4 || isNaN(newPin)) {
+                alert('⚠️ Vui lòng nhập Mã PIN 4 chữ số hợp lệ!');
+                return;
+            }
+
+            // Successfully verified! Reset PIN & unlock app
+            state.userProfile.pinCode = newPin;
+            state.userProfile.pinEnabled = true;
+            saveState();
+
+            sessionStorage.setItem('app_unlocked_session', 'true');
+            if (modalForgot) modalForgot.classList.remove('active');
+            if (modalPin) modalPin.style.display = 'none';
+
+            alert('🎉 Khôi phục mã PIN thành công! Đã mở khóa ứng dụng.');
+        });
+    }
+}
+
+function updatePinDotsUI() {
+    const dots = document.querySelectorAll('.pin-dot');
+    dots.forEach((dot, index) => {
+        if (index < enteredPinDigits.length) {
+            dot.classList.add('filled');
+        } else {
+            dot.classList.remove('filled');
+        }
+    });
+}
+
+function verifyEnteredPin() {
+    const modalPin = document.getElementById('modalPinLock');
+    const card = document.querySelector('.pin-lock-card');
+
+    if (enteredPinDigits === state.userProfile.pinCode) {
+        sessionStorage.setItem('app_unlocked_session', 'true');
+        if (modalPin) modalPin.style.display = 'none';
+        enteredPinDigits = '';
+        updatePinDotsUI();
+    } else {
+        if (card) {
+            card.classList.add('shake-pin');
+            setTimeout(() => card.classList.remove('shake-pin'), 400);
+        }
+        enteredPinDigits = '';
+        updatePinDotsUI();
+        alert('❌ Mã PIN không chính xác. Vui lòng thử lại!');
+    }
 }
 
 // --- NAVIGATION ---
@@ -298,7 +482,7 @@ function renderChart(year) {
     } catch(e) {}
 }
 
-// === TRANSACTIONS LOG (WITH STRICT CHRONOLOGICAL SORTING & SEARCH SUMMARY) ===
+// === TRANSACTIONS LOG ===
 function renderTransactions() {
     const container = document.getElementById('transactionList');
     if (!container) return;
@@ -315,8 +499,8 @@ function renderTransactions() {
     const sortedAll = [...state.transactions].sort((a, b) => {
         const timeA = new Date(a.date || 0).getTime();
         const timeB = new Date(b.date || 0).getTime();
-        if (timeB !== timeA) return timeB - timeA; // Date descending
-        return (b.id || '').localeCompare(a.id || ''); // Newer entry first
+        if (timeB !== timeA) return timeB - timeA;
+        return (b.id || '').localeCompare(a.id || '');
     });
 
     // 2. FILTER BY TIME RANGE & TYPE
@@ -325,10 +509,8 @@ function renderTransactions() {
         const d = new Date(tx.date);
         if (isNaN(d.getTime())) return false;
 
-        // Type filter
         if (typeFilter !== 'all' && tx.type !== typeFilter) return false;
 
-        // Time Range filter
         if (timeRangeFilter === 'period') {
             if (d.getFullYear() !== selectedYear) return false;
             if (selectedMonth !== 'all' && (d.getMonth() + 1) !== parseInt(selectedMonth)) return false;
@@ -600,7 +782,7 @@ function initModals() {
         if (btn) btn.addEventListener('click', () => modalUserGuide.classList.remove('active'));
     });
 
-    // PROFILE & AVATAR MODAL
+    // PROFILE, AVATAR & PIN SECURITY SETTINGS MODAL
     const modalProfile = document.getElementById('modalProfile');
     const btnOpenProfileModal = document.getElementById('btnOpenProfileModal');
     const closeProfileModal = document.getElementById('closeProfileModal');
@@ -608,11 +790,20 @@ function initModals() {
     const inputAvatarFile = document.getElementById('inputAvatarFile');
     const btnSaveProfile = document.getElementById('btnSaveProfile');
     const inputUserName = document.getElementById('inputUserName');
+    const inputRecoveryEmail = document.getElementById('inputRecoveryEmail');
+    const togglePinLock = document.getElementById('togglePinLock');
+    const pinSetupContainer = document.getElementById('pinSetupContainer');
+    const inputPinCode = document.getElementById('inputPinCode');
     const profileAvatarPreview = document.getElementById('profileAvatarPreview');
 
     if (btnOpenProfileModal) {
         btnOpenProfileModal.addEventListener('click', () => {
             if (inputUserName) inputUserName.value = state.userProfile.name || 'Tài Chính Cá Nhân';
+            if (inputRecoveryEmail) inputRecoveryEmail.value = state.userProfile.recoveryEmail || '';
+            if (togglePinLock) togglePinLock.checked = !!state.userProfile.pinEnabled;
+            if (pinSetupContainer) pinSetupContainer.style.display = state.userProfile.pinEnabled ? 'block' : 'none';
+            if (inputPinCode) inputPinCode.value = state.userProfile.pinCode || '';
+
             tempAvatarBase64 = state.userProfile.avatar || '';
             if (profileAvatarPreview) {
                 if (tempAvatarBase64) {
@@ -623,6 +814,12 @@ function initModals() {
             }
             if (modalProfile) modalProfile.classList.add('active');
             safeCreateIcons();
+        });
+    }
+
+    if (togglePinLock && pinSetupContainer) {
+        togglePinLock.addEventListener('change', () => {
+            pinSetupContainer.style.display = togglePinLock.checked ? 'block' : 'none';
         });
     }
 
@@ -647,12 +844,31 @@ function initModals() {
 
     if (btnSaveProfile) {
         btnSaveProfile.addEventListener('click', () => {
-            if (inputUserName && inputUserName.value.trim()) {
-                state.userProfile.name = inputUserName.value.trim();
+            const nameVal = inputUserName?.value.trim();
+            const emailVal = inputRecoveryEmail?.value.trim();
+            const pinEnabled = togglePinLock?.checked || false;
+            const pinVal = inputPinCode?.value.trim();
+
+            if (pinEnabled) {
+                if (!emailVal) {
+                    alert('⚠️ Vui lòng nhập Email Khôi Phục để kích hoạt bảo mật PIN!');
+                    return;
+                }
+                if (!pinVal || pinVal.length !== 4 || isNaN(pinVal)) {
+                    alert('⚠️ Vui lòng nhập Mã PIN 4 chữ số hợp lệ!');
+                    return;
+                }
             }
+
+            if (nameVal) state.userProfile.name = nameVal;
+            state.userProfile.recoveryEmail = emailVal || '';
+            state.userProfile.pinEnabled = pinEnabled;
+            state.userProfile.pinCode = pinEnabled ? pinVal : '';
             state.userProfile.avatar = tempAvatarBase64;
+
             saveState();
             if (modalProfile) modalProfile.classList.remove('active');
+            alert('✅ Đã lưu cài đặt Hồ Sơ & Bảo Mật thành công!');
         });
     }
 

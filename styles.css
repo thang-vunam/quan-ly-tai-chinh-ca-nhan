@@ -1,4 +1,4 @@
-/* === MODERN DARK GLASSMORPHISM DESIGN SYSTEM (WITH PERFECT SCROLLING MODAL FIX) === */
+/* === MODERN DARK GLASSMORPHISM DESIGN SYSTEM (WITH FULL PIN LOCK & EMAIL OTP STYLES) === */
 :root {
     --bg-dark: #090D16;
     --bg-card: rgba(18, 24, 38, 0.85);
@@ -757,3 +757,143 @@ body {
 }
 .segmented-control input:checked + .segment.expense { background: var(--danger); color: #FFF; }
 .segmented-control input:checked + .segment.income { background: var(--success); color: #FFF; }
+
+/* === PIN LOCK OVERLAY & KEYPAD STYLES === */
+.pin-lock-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(9, 13, 22, 0.96);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.pin-lock-card {
+    width: 100%;
+    max-width: 320px;
+    text-align: center;
+}
+
+.pin-dots-container {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.pin-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    background: transparent;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pin-dot.filled {
+    background: #3B82F6;
+    border-color: #3B82F6;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.6);
+    transform: scale(1.15);
+}
+
+.pin-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    justify-items: center;
+}
+
+.keypad-btn {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #F8FAFC;
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.keypad-btn:active {
+    background: rgba(59, 130, 246, 0.3);
+    transform: scale(0.92);
+}
+
+.keypad-btn.action-key {
+    background: none;
+    border: none;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+.keypad-btn.action-key:active {
+    color: var(--primary);
+    background: none;
+}
+
+/* Shake Animation on Wrong PIN */
+.shake-pin {
+    animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-10px); }
+    40%, 80% { transform: translateX(10px); }
+}
+
+/* Switch Toggle UI */
+.switch-toggle {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 26px;
+}
+
+.switch-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider-round {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(255, 255, 255, 0.15);
+    transition: .3s;
+    border-radius: 34px;
+}
+
+.slider-round:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider-round {
+    background-color: #10B981;
+}
+
+input:checked + .slider-round:before {
+    transform: translateX(20px);
+}

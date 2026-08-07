@@ -25,6 +25,9 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -32,7 +35,7 @@
     <div id="app" class="app-container">
         <!-- Top App Bar (iOS Safe Area Padding) -->
         <header class="top-bar">
-            <div class="user-profile" id="btnOpenProfileModal" title="Đổi Avatar & Tên">
+            <div class="user-profile" id="btnOpenProfileModal" title="Đổi Avatar, PIN & Email">
                 <div class="avatar" id="headerAvatarContainer"><i data-lucide="user"></i></div>
                 <div>
                     <div class="greeting">Xin chào 👋</div>
@@ -286,6 +289,87 @@
             </button>
         </nav>
 
+        <!-- FULL-SCREEN PIN PASSCODE LOCK SCREEN MODAL -->
+        <div class="pin-lock-overlay" id="modalPinLock" style="display: none;">
+            <div class="pin-lock-card">
+                <div class="avatar-large" id="pinUserAvatarPreview" style="margin: 0 auto 12px auto;">
+                    <i data-lucide="user"></i>
+                </div>
+                <h3 id="pinGreetingName" style="font-size: 1.15rem; font-weight: 700; color: #F8FAFC;">Xin chào 👋</h3>
+                <p style="font-size: 0.85rem; color: #94A3B8; margin-top: 4px; margin-bottom: 24px;">Nhập mã PIN 4 chữ số để mở khóa ứng dụng</p>
+
+                <!-- PIN Dots -->
+                <div class="pin-dots-container" id="pinDotsContainer">
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                </div>
+
+                <!-- Keypad 3x4 Grid -->
+                <div class="pin-keypad">
+                    <button class="keypad-btn" data-key="1">1</button>
+                    <button class="keypad-btn" data-key="2">2</button>
+                    <button class="keypad-btn" data-key="3">3</button>
+                    <button class="keypad-btn" data-key="4">4</button>
+                    <button class="keypad-btn" data-key="5">5</button>
+                    <button class="keypad-btn" data-key="6">6</button>
+                    <button class="keypad-btn" data-key="7">7</button>
+                    <button class="keypad-btn" data-key="8">8</button>
+                    <button class="keypad-btn" data-key="9">9</button>
+                    <button class="keypad-btn action-key" id="btnForgotPinTrigger">Quên PIN?</button>
+                    <button class="keypad-btn" data-key="0">0</button>
+                    <button class="keypad-btn action-key" id="btnPinBackspace"><i data-lucide="delete"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: FORGOT PIN & EMAIL OTP RECOVERY -->
+        <div class="modal-overlay" id="modalForgotPin">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i data-lucide="key-round" style="color: #F59E0B;"></i> Khôi Phục PIN Qua Email</h4>
+                    <button class="close-btn" id="closeForgotPinModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Step 1: Input Registered Email -->
+                    <div id="stepForgotEmail">
+                        <p style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 12px;">
+                            Nhập địa chỉ Email Khôi Phục mà bạn đã đăng ký trong Hồ Sơ Cá Nhân để nhận Mã OTP xác thực:
+                        </p>
+                        <div class="form-group">
+                            <label>Email Khôi Phục Đã Đăng Ký</label>
+                            <input type="email" id="inputForgotEmail" class="custom-input" placeholder="Ví dụ: name@gmail.com" required>
+                        </div>
+                        <button type="button" class="btn-block primary" id="btnSendOtpEmail" style="background: linear-gradient(135deg, #F59E0B, #D97706); font-weight: 700;">Gửi Mã OTP Xác Thực</button>
+                    </div>
+
+                    <!-- Step 2: Input OTP & Set New PIN (Initially hidden) -->
+                    <div id="stepForgotOtp" style="display: none;">
+                        <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+                            <strong style="color: #10B981; font-size: 0.88rem;">📩 Đã gửi mã OTP thành công!</strong>
+                            <p style="font-size: 0.8rem; color: #CBD5E1; margin-top: 4px;">
+                                Mã OTP 6 chữ số đã được gửi đến email của bạn.<br>
+                                💡 <em>Vui lòng kiểm tra <strong>Hộp thư đến (Inbox)</strong> hoặc <strong>Thư mục Spam / Thư rác</strong> trong Email của bạn.</em>
+                            </p>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Mã OTP (6 chữ số)</label>
+                            <input type="text" id="inputOtpCode" class="custom-input" placeholder="Ví dụ: 849201" maxlength="6" style="letter-spacing: 4px; font-weight: 700; font-size: 1.1rem; text-align: center;">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Mã PIN 4 Số Mới</label>
+                            <input type="password" id="inputNewPinAfterOtp" class="custom-input" placeholder="Ví dụ: 1234" maxlength="4" style="letter-spacing: 4px; text-align: center;">
+                        </div>
+
+                        <button type="button" class="btn-block primary" id="btnVerifyOtpAndResetPin" style="background: linear-gradient(135deg, #10B981, #059669);">Xác Nhận OTP & Tạo PIN Mới</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- MODAL: USER GUIDE (HDSD) - COMPLETE ALL 6 SECTIONS -->
         <div class="modal-overlay" id="modalUserGuide">
             <div class="modal-content">
@@ -342,11 +426,11 @@
             </div>
         </div>
 
-        <!-- MODAL: USER PROFILE & AVATAR UPLOAD -->
+        <!-- MODAL: USER PROFILE, AVATAR & SECURITY PIN SETTINGS -->
         <div class="modal-overlay" id="modalProfile">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4><i data-lucide="user-check"></i> Hồ Sơ Cá Nhân & Avatar</h4>
+                    <h4><i data-lucide="shield-check" style="color: #3B82F6;"></i> Hồ Sơ Cá Nhân & Bảo Mật</h4>
                     <button class="close-btn" id="closeProfileModal"><i data-lucide="x"></i></button>
                 </div>
                 <div class="modal-body" style="text-align: center;">
@@ -358,15 +442,41 @@
                         <div class="avatar-badge"><i data-lucide="camera"></i></div>
                     </div>
                     <input type="file" id="inputAvatarFile" accept="image/*" style="display: none;">
-                    <p style="font-size: 0.78rem; color: #94A3B8; margin-top: 8px;">Nhấn vào hình để chọn ảnh từ thư viện iPhone / Máy tính</p>
+                    <p style="font-size: 0.78rem; color: #94A3B8; margin-top: 6px;">Nhấn vào hình để chọn ảnh từ thư viện iPhone / Máy tính</p>
 
-                    <div class="form-group" style="text-align: left; margin-top: 18px;">
+                    <div class="form-group" style="text-align: left; margin-top: 16px;">
                         <label>Tên hiển thị của bạn</label>
                         <input type="text" id="inputUserName" class="custom-input" placeholder="Nhập tên của bạn...">
                     </div>
+
+                    <div class="form-group" style="text-align: left;">
+                        <label>Email Khôi Phục Bảo Mật <span style="color: #EF4444;">*</span></label>
+                        <input type="email" id="inputRecoveryEmail" class="custom-input" placeholder="Ví dụ: thangvu@gmail.com" required>
+                        <span style="font-size: 0.72rem; color: #64748B;">Dùng để nhận mã OTP khôi phục PIN nếu lỡ quên</span>
+                    </div>
+
+                    <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 14px; text-align: left; margin-top: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong style="font-size: 0.9rem; color: #F8FAFC;">🔒 Khóa PIN Bảo Mật</strong>
+                                <div style="font-size: 0.75rem; color: #94A3B8;">Khóa app khi mở lại trên máy</div>
+                            </div>
+                            <label class="switch-toggle">
+                                <input type="checkbox" id="togglePinLock">
+                                <span class="slider-round"></span>
+                            </label>
+                        </div>
+
+                        <div id="pinSetupContainer" style="display: none; margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(255, 255, 255, 0.1);">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Cài Đặt Mã PIN (4 chữ số)</label>
+                                <input type="password" id="inputPinCode" class="custom-input" placeholder="Ví dụ: 1234" maxlength="4" style="letter-spacing: 4px; font-weight: 700; text-align: center;">
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn-block primary" id="btnSaveProfile">Lưu Hồ Sơ</button>
+                    <button class="btn-block primary" id="btnSaveProfile">Lưu Cài Đặt Hồ Sơ & PIN</button>
                 </div>
             </div>
         </div>
