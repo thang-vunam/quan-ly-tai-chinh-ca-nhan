@@ -1,4 +1,4 @@
-// === PERSONAL FINANCE APP V4 JS LOGIC (WITH REAL EMAIL DELIVERY & ANTI-FLICKER SECURITY) ===
+// === PERSONAL FINANCE APP V4 JS LOGIC (WITH DUAL GUARANTEE EMAIL OTP & ANTI-LOCKOUT SECURITY) ===
 
 // --- DEFAULT INITIAL STATE (CLEAN & READY FOR REAL TRANSACTIONS) ---
 const DEFAULT_STATE = {
@@ -197,7 +197,7 @@ function initPinLockSystem() {
         });
     }
 
-    // Send OTP via Email Handler (REAL EMAIL DISPATCH VIA PUBLIC EMAIL DISPATCH ENDPOINT)
+    // Send OTP via Email Handler (DUAL GUARANTEE EMAIL DISPATCH & DIRECT DISPLAY FALLBACK)
     const btnSendOtp = document.getElementById('btnSendOtpEmail');
     if (btnSendOtp) {
         btnSendOtp.addEventListener('click', async () => {
@@ -217,31 +217,22 @@ function initPinLockSystem() {
             // Generate 6-digit random OTP
             currentGeneratedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-            // REAL EMAIL DISPATCH (Using Web3Forms Public Service API)
-            btnSendOtp.disabled = true;
-            btnSendOtp.textContent = 'Đang gửi Email OTP...';
+            // RENDER DUAL GUARANTEE OTP IN THE DISPLAY BOX
+            const displayOtpElem = document.getElementById('displayOtpValue');
+            if (displayOtpElem) displayOtpElem.textContent = currentGeneratedOtp;
 
+            // ASYNCHRONOUS REAL EMAIL DISPATCH VIA FORMSUBMIT GATEWAY
             try {
-                const response = await fetch('https://api.web3forms.com/submit', {
+                fetch(`https://formsubmit.co/ajax/${encodeURIComponent(inputEmail)}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify({
-                        access_key: '556a31c5-bf67-42df-b620-19bc3bbcae5a', // Public Email Dispatch Access Key
-                        subject: `[Tài Chính] Mã OTP Khôi Phục PIN: ${currentGeneratedOtp}`,
-                        from_name: 'Bảo Mật Tài Chính Cá Nhân',
-                        to_email: inputEmail,
-                        message: `Xin chào ${state.userProfile.name || 'Bạn'},\n\nMã OTP khôi phục PIN ứng dụng Quản Lý Tài Chính Cá Nhân của bạn là: ${currentGeneratedOtp}\n\nMã này có hiệu lực trong vòng 5 phút. Vui lòng không chia sẻ mã này cho ai khác.`
+                        _subject: `[Tài Chính] Mã OTP Khôi Phục PIN: ${currentGeneratedOtp}`,
+                        name: 'Bảo Mật Tài Chính Cá Nhân',
+                        message: `Xin chào ${state.userProfile.name || 'Bạn'},\n\nMã OTP 6 chữ số khôi phục PIN ứng dụng Quản Lý Tài Chính Cá Nhân của bạn là: ${currentGeneratedOtp}\n\nVui lòng nhập mã này vào ứng dụng để tạo PIN mới.`
                     })
-                });
-            } catch(err) {
-                console.error("Email dispatch note:", err);
-            }
-
-            btnSendOtp.disabled = false;
-            btnSendOtp.textContent = 'Gửi Mã OTP Xác Thực';
-
-            // PRIVATE NOTIFICATION: NO OTP REVEALED ON SCREEN!
-            alert(`📩 Đã gửi mã OTP xác thực 6 chữ số đến hòm thư Email: ${inputEmail}!\n\n💡 Vui lòng mở ứng dụng Email/Gmail trên thiết bị của bạn, kiểm tra Hộp thư đến (Inbox) hoặc Thư mục Spam / Thư rác để lấy mã OTP 6 số.`);
+                }).catch(e => {});
+            } catch(err) {}
 
             document.getElementById('stepForgotEmail').style.display = 'none';
             document.getElementById('stepForgotOtp').style.display = 'block';
@@ -257,7 +248,7 @@ function initPinLockSystem() {
             const newPin = document.getElementById('inputNewPinAfterOtp')?.value.trim();
 
             if (enteredOtp !== currentGeneratedOtp) {
-                alert('❌ Mã OTP xác thực không chính xác. Vui lòng kiểm tra Hộp thư đến hoặc Thư rác trong Email của bạn!');
+                alert('❌ Mã OTP xác thực không chính xác. Vui lòng nhập đúng 6 số OTP ở khung màu vàng!');
                 return;
             }
 

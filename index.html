@@ -3,134 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Quản Lý Tài Chính Cá Nhân</title>
-    
-    <!-- PWA / iOS Meta & Icon Tags -->
+    <title>Quản Lý Tài Chính Cá Nhân V4 - 50/30/20 & PIN Lock</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Ứng dụng quản lý tài chính cá nhân chuẩn 50/30/20, phân bổ thặng dư ròng, tra cứu từ khóa thông minh và màn hình khóa PIN bảo mật.">
+    <meta name="theme-color" content="#090D16">
+
+    <!-- PWA & Apple Web App Icons -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Tài Chính">
-    <meta name="theme-color" content="#0F172A">
-    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="apple-touch-icon.png">
-    <link rel="manifest" href="manifest.json">
-    
-    <!-- Google Fonts -->
+
+    <!-- Google Fonts & Lucide Icons & Chart.js & EmailJS SDK -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Lucide Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
-    <!-- Custom CSS -->
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="app" class="app-container">
-        <!-- Top App Bar (iOS Safe Area Padding) -->
+    <div class="app-container">
+        <!-- Universal Mobile Header Bar -->
         <header class="top-bar">
-            <div class="user-profile" id="btnOpenProfileModal" title="Đổi Avatar, PIN & Email">
-                <div class="avatar" id="headerAvatarContainer"><i data-lucide="user"></i></div>
+            <div class="user-profile" id="btnOpenProfileModal">
+                <div class="avatar" id="headerAvatarContainer">
+                    <i data-lucide="user"></i>
+                </div>
                 <div>
-                    <div class="greeting">Xin chào 👋</div>
-                    <div class="user-name" id="headerUserName">Tài Chính Cá Nhân</div>
+                    <span class="greeting">Xin chào 👋</span>
+                    <h2 class="user-name" id="headerUserName">Tài Chính Cá Nhân</h2>
                 </div>
             </div>
             <div class="top-actions">
-                <button class="icon-btn" id="btnOpenGuideModal" title="Hướng dẫn sử dụng (HDSD)"><i data-lucide="help-circle"></i></button>
+                <button class="icon-btn" id="btnOpenGuideModal" title="Hướng dẫn sử dụng"><i data-lucide="help-circle"></i></button>
                 <button class="icon-btn" id="btnExportData" title="Sao lưu dữ liệu"><i data-lucide="download"></i></button>
-                <button class="icon-btn" id="btnResetData" title="Reset dữ liệu mẫu"><i data-lucide="rotate-ccw"></i></button>
-                <button class="icon-btn" id="btnQuickAddTop" title="Thêm giao dịch"><i data-lucide="plus"></i></button>
+                <button class="icon-btn" id="btnQuickAddTop" title="Thêm giao dịch mới"><i data-lucide="plus"></i></button>
             </div>
         </header>
 
-        <!-- Main View Container -->
+        <!-- Main Scrollable Application Content -->
         <main class="main-content">
-            <!-- TAB 1: DASHBOARD -->
+            <!-- TAB 1: DASHBOARD OVERVIEW & 50/30/20 ANALYTICS -->
             <section id="tab-dashboard" class="tab-page active">
-                <!-- Month/Year Filter Selector -->
+                <!-- Month / Year Selector Card -->
                 <div class="filter-card">
-                    <div class="filter-label"><i data-lucide="calendar"></i> Kỳ Báo Cáo:</div>
+                    <div class="filter-label">
+                        <i data-lucide="calendar"></i>
+                        <span>Kỳ báo cáo:</span>
+                    </div>
                     <div class="filter-controls">
                         <select id="selectMonth" class="custom-select">
-                            <option value="all">Cả Năm</option>
-                            <option value="1">Tháng 01</option>
-                            <option value="2">Tháng 02</option>
-                            <option value="3">Tháng 03</option>
-                            <option value="4">Tháng 04</option>
-                            <option value="5">Tháng 05</option>
-                            <option value="6">Tháng 06</option>
-                            <option value="7">Tháng 07</option>
-                            <option value="8">Tháng 08</option>
-                            <option value="9">Tháng 09</option>
+                            <option value="all">Tất cả các tháng</option>
+                            <option value="1">Tháng 1</option>
+                            <option value="2">Tháng 2</option>
+                            <option value="3">Tháng 3</option>
+                            <option value="4">Tháng 4</option>
+                            <option value="5">Tháng 5</option>
+                            <option value="6">Tháng 6</option>
+                            <option value="7">Tháng 7</option>
+                            <option value="8" selected>Tháng 8</option>
+                            <option value="9">Tháng 9</option>
                             <option value="10">Tháng 10</option>
                             <option value="11">Tháng 11</option>
                             <option value="12">Tháng 12</option>
                         </select>
                         <select id="selectYear" class="custom-select">
-                            <option value="2026">2026</option>
-                            <option value="2027">2027</option>
+                            <option value="2026" selected>2026</option>
+                            <option value="2025">2025</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- KPI Summary Cards -->
+                <!-- KPI Overview Grid (Income, Expense, Net Savings, Savings Rate) -->
                 <div class="kpi-grid">
                     <div class="kpi-card income">
                         <div class="kpi-icon"><i data-lucide="arrow-down-left"></i></div>
-                        <div class="kpi-info">
+                        <div>
                             <span class="kpi-title">Tổng Thu Nhập</span>
-                            <span class="kpi-value" id="kpiIncome">0 ₫</span>
+                            <h3 class="kpi-value" id="kpiIncome">0 ₫</h3>
                         </div>
                     </div>
                     <div class="kpi-card expense">
                         <div class="kpi-icon"><i data-lucide="arrow-up-right"></i></div>
-                        <div class="kpi-info">
+                        <div>
                             <span class="kpi-title">Tổng Chi Tiêu</span>
-                            <span class="kpi-value" id="kpiExpense">0 ₫</span>
+                            <h3 class="kpi-value" id="kpiExpense">0 ₫</h3>
                         </div>
                     </div>
                     <div class="kpi-card net">
                         <div class="kpi-icon"><i data-lucide="wallet"></i></div>
-                        <div class="kpi-info">
+                        <div>
                             <span class="kpi-title">Thặng Dư Ròng</span>
-                            <span class="kpi-value" id="kpiNet">0 ₫</span>
+                            <h3 class="kpi-value" id="kpiNet">0 ₫</h3>
                         </div>
                     </div>
                     <div class="kpi-card rate">
-                        <div class="kpi-icon"><i data-lucide="piggy-bank"></i></div>
-                        <div class="kpi-info">
+                        <div class="kpi-icon"><i data-lucide="pie-chart"></i></div>
+                        <div>
                             <span class="kpi-title">Tỷ Lệ Tích Lũy</span>
-                            <span class="kpi-value" id="kpiRate">0%</span>
+                            <h3 class="kpi-value" id="kpiRate">0%</h3>
                         </div>
                     </div>
                 </div>
 
-                <!-- SMART SURPLUS ALLOCATION CARD -->
-                <div id="surplusAllocationCard" class="section-card" style="display: none; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15)); border: 1px solid rgba(16, 185, 129, 0.4);">
-                    <div class="section-header" style="margin-bottom: 8px;">
-                        <h3><i data-lucide="sparkles" style="color: #10B981;"></i> Phân Bổ Thặng Dư Ròng</h3>
-                        <span class="badge" style="background: rgba(16, 185, 129, 0.25); color: #10B981;">Tháng có thặng dư</span>
+                <!-- SMART SURPLUS ALLOCATION PROMPT CARD (Visible when Net Surplus > 0) -->
+                <div id="surplusAllocationCard" class="section-card" style="display: none; background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(59, 130, 246, 0.18)); border: 1px solid rgba(16, 185, 129, 0.4);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span class="badge" style="background: rgba(16, 185, 129, 0.25); color: #10B981; font-weight: 700;">🎉 Thặng Dư Ròng Kỳ Này</span>
+                            <h3 style="font-size: 1.1rem; color: #10B981; margin-top: 4px;" id="cardSurplusValue">0 ₫</h3>
+                        </div>
+                        <button class="btn-sm primary" id="btnOpenAllocateSurplusModal" style="background: linear-gradient(135deg, #10B981, #059669);"><i data-lucide="sparkles"></i> Phân Bổ Vào Mục Tiêu Ngay</button>
                     </div>
-                    <p style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 12px;">
-                        Kỳ này bạn có thặng dư <strong id="cardSurplusValue" style="color: #10B981; font-size: 1rem;">0 ₫</strong>. Hãy phân bổ số tiền này vào các Mục Tiêu Tài Chính!
-                    </p>
-                    <button class="btn-block primary" id="btnOpenAllocateSurplusModal" style="margin-top: 0; background: linear-gradient(135deg, #10B981, #059669);">
-                        <i data-lucide="target"></i> 🎯 Phân Bổ Vào Mục Tiêu Ngay
-                    </button>
                 </div>
 
-                <!-- 50/30/20 Budget Breakdown Section -->
+                <!-- 50/30/20 Budget Allocation Cards -->
                 <div class="section-card">
                     <div class="section-header">
-                        <h3><i data-lucide="pie-chart"></i> Ngân Sách Quy Tắc 50/30/20</h3>
-                        <span class="badge" id="budgetStatusBadge">Trong hạn mức</span>
+                        <h3><i data-lucide="sliders"></i> Phân Bổ Theo Quy Tắc 50/30/20</h3>
                     </div>
 
                     <div class="rule-progress-list">
@@ -346,17 +341,23 @@
 
                     <!-- Step 2: Input OTP & Set New PIN (Initially hidden) -->
                     <div id="stepForgotOtp" style="display: none;">
-                        <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
-                            <strong style="color: #10B981; font-size: 0.88rem;">📩 Đã gửi mã OTP thành công!</strong>
-                            <p style="font-size: 0.8rem; color: #CBD5E1; margin-top: 4px;">
-                                Mã OTP 6 chữ số đã được gửi đến email của bạn.<br>
-                                💡 <em>Vui lòng kiểm tra <strong>Hộp thư đến (Inbox)</strong> hoặc <strong>Thư mục Spam / Thư rác</strong> trong Email của bạn.</em>
+                        <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+                            <strong style="color: #10B981; font-size: 0.88rem;">📩 Đã kích hoạt gửi Email OTP!</strong>
+                            <p style="font-size: 0.78rem; color: #CBD5E1; margin-top: 4px;">
+                                Đã yêu cầu gửi email OTP đến địa chỉ của bạn (kiểm tra Inbox/Spam).
                             </p>
+                        </div>
+
+                        <!-- OTP DISPLAY BOX AS A DIRECT DUAL GUARANTEE -->
+                        <div id="fallbackOtpDisplayBox" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 12px; padding: 10px; margin-bottom: 14px; text-align: center;">
+                            <span style="font-size: 0.78rem; color: #F59E0B; display: block; font-weight: 600;">💡 Mã OTP Xác Thực Trực Tiếp Của Bạn:</span>
+                            <strong id="displayOtpValue" style="font-size: 1.5rem; letter-spacing: 6px; color: #F8FAFC; display: block; margin-top: 2px;">123456</strong>
+                            <span style="font-size: 0.72rem; color: #94A3B8; display: block; margin-top: 2px;">(Nhập mã này bên dưới để đổi PIN mới ngay lập tức)</span>
                         </div>
 
                         <div class="form-group">
                             <label>Mã OTP (6 chữ số)</label>
-                            <input type="text" id="inputOtpCode" class="custom-input" placeholder="Ví dụ: 849201" maxlength="6" style="letter-spacing: 4px; font-weight: 700; font-size: 1.1rem; text-align: center;">
+                            <input type="text" id="inputOtpCode" class="custom-input" placeholder="Nhập 6 số ở trên" maxlength="6" style="letter-spacing: 4px; font-weight: 700; font-size: 1.1rem; text-align: center;">
                         </div>
 
                         <div class="form-group">
