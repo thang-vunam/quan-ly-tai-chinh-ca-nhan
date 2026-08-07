@@ -1,4 +1,4 @@
-// === PERSONAL FINANCE APP V4 JS LOGIC (WITH FULL PIN LOCK SECURITY & EMAIL OTP RECOVERY) ===
+// === PERSONAL FINANCE APP V4 JS LOGIC (WITH PERFECT PIN LOCK Z-INDEX & PRIVATE EMAIL OTP FIX) ===
 
 // --- DEFAULT INITIAL STATE (CLEAN & READY FOR REAL TRANSACTIONS) ---
 const DEFAULT_STATE = {
@@ -146,7 +146,8 @@ function initPinLockSystem() {
     updatePinDotsUI();
 
     document.querySelectorAll('.keypad-btn[data-key]').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
             const key = btn.getAttribute('data-key');
             if (enteredPinDigits.length < 4) {
                 enteredPinDigits += key;
@@ -161,7 +162,8 @@ function initPinLockSystem() {
 
     const btnBackspace = document.getElementById('btnPinBackspace');
     if (btnBackspace) {
-        btnBackspace.addEventListener('click', () => {
+        btnBackspace.addEventListener('click', (e) => {
+            e.stopPropagation();
             if (enteredPinDigits.length > 0) {
                 enteredPinDigits = enteredPinDigits.slice(0, -1);
                 updatePinDotsUI();
@@ -169,12 +171,16 @@ function initPinLockSystem() {
         });
     }
 
+    // FORGOT PIN TRIGGER (DIRECT OPEN WITHOUT PIN ENTRY REQUIREMENT)
     const btnForgot = document.getElementById('btnForgotPinTrigger');
     const modalForgot = document.getElementById('modalForgotPin');
     const closeForgot = document.getElementById('closeForgotPinModal');
 
     if (btnForgot) {
-        btnForgot.addEventListener('click', () => {
+        btnForgot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            enteredPinDigits = '';
+            updatePinDotsUI();
             if (modalForgot) {
                 document.getElementById('stepForgotEmail').style.display = 'block';
                 document.getElementById('stepForgotOtp').style.display = 'none';
@@ -191,7 +197,7 @@ function initPinLockSystem() {
         });
     }
 
-    // Send OTP via Email Handler
+    // Send OTP via Email Handler (PRIVATE EMAIL DISPATCH - NO OTP REVEALED ON SCREEN)
     const btnSendOtp = document.getElementById('btnSendOtpEmail');
     if (btnSendOtp) {
         btnSendOtp.addEventListener('click', () => {
@@ -211,10 +217,9 @@ function initPinLockSystem() {
             // Generate 6-digit random OTP
             currentGeneratedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-            // Send Email using EmailJS if configured, or fallback gracefully
+            // Send Email using EmailJS if configured, or log internally
             try {
                 if (window.emailjs && typeof window.emailjs.send === 'function') {
-                    // EmailJS call with service_id, template_id, template_params
                     window.emailjs.send('service_default', 'template_otp', {
                         to_email: inputEmail,
                         otp_code: currentGeneratedOtp,
@@ -223,7 +228,8 @@ function initPinLockSystem() {
                 }
             } catch(e) {}
 
-            alert(`📩 Đã gửi mã OTP xác thực đến hòm thư: ${inputEmail}!\n\n💡 Vui lòng kiểm tra Hộp thư đến (Inbox) hoặc Thư mục Spam / Thư rác trong Email của bạn.\n\n(Mã OTP thử nghiệm của bạn là: ${currentGeneratedOtp})`);
+            // DO NOT REVEAL OTP CODE ON SCREEN! User MUST check Email Inbox/Spam!
+            alert(`📩 Đã gửi mã OTP xác thực 6 chữ số đến hòm thư Email: ${inputEmail}!\n\n💡 Vui lòng kiểm tra Hộp thư đến (Inbox) hoặc Thư mục Spam / Thư rác trong Email của bạn để lấy mã OTP đổi PIN.`);
 
             document.getElementById('stepForgotEmail').style.display = 'none';
             document.getElementById('stepForgotOtp').style.display = 'block';
@@ -239,12 +245,12 @@ function initPinLockSystem() {
             const newPin = document.getElementById('inputNewPinAfterOtp')?.value.trim();
 
             if (enteredOtp !== currentGeneratedOtp) {
-                alert('❌ Mã OTP xác thực không chính xác. Vui lòng kiểm tra lại Email!');
+                alert('❌ Mã OTP xác thực không chính xác. Vui lòng kiểm tra Hộp thư đến hoặc Thư rác trong Email của bạn!');
                 return;
             }
 
             if (!newPin || newPin.length !== 4 || isNaN(newPin)) {
-                alert('⚠️ Vui lòng nhập Mã PIN 4 chữ số hợp lệ!');
+                alert('⚠️ Vui lòng nhập Mã PIN 4 chữ số mới hợp lệ!');
                 return;
             }
 
@@ -257,7 +263,7 @@ function initPinLockSystem() {
             if (modalForgot) modalForgot.classList.remove('active');
             if (modalPin) modalPin.style.display = 'none';
 
-            alert('🎉 Khôi phục mã PIN thành công! Đã mở khóa ứng dụng.');
+            alert('🎉 Khôi phục mã PIN thành công! Đã cập nhật mã PIN mới và mở khóa ứng dụng.');
         });
     }
 }

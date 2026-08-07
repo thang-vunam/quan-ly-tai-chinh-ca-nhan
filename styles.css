@@ -1,4 +1,4 @@
-/* === MODERN DARK GLASSMORPHISM DESIGN SYSTEM (WITH FULL PIN LOCK & EMAIL OTP STYLES) === */
+/* === MODERN DARK GLASSMORPHISM DESIGN SYSTEM (WITH PERFECT Z-INDEX PIN & OTP RECOVERY FIX) === */
 :root {
     --bg-dark: #090D16;
     --bg-card: rgba(18, 24, 38, 0.85);
@@ -671,6 +671,11 @@ body {
     align-items: flex-end;
 }
 .modal-overlay.active { display: flex; }
+
+/* FORGOT PIN MODAL PLACED ON TOP OF PIN LOCK SCREEN */
+#modalForgotPin {
+    z-index: 10000 !important;
+}
 
 .modal-content {
     width: 100%;
