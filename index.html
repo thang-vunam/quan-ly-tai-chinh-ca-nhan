@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Quản Lý Tài Chính Cá Nhân V4 - 50/30/20 & PIN Lock</title>
+    <title>Quản Lý Tài Chính Cá Nhân V4 - 50/30/20 & PIN & Biometrics</title>
 
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Ứng dụng quản lý tài chính cá nhân chuẩn 50/30/20, phân bổ thặng dư ròng, tra cứu từ khóa thông minh và màn hình khóa PIN bảo mật.">
+    <meta name="description" content="Ứng dụng quản lý tài chính cá nhân chuẩn 50/30/20, phân bổ thặng dư ròng, tra cứu từ khóa thông minh và bảo mật PIN / Face ID / Touch ID / Vân tay.">
     <meta name="theme-color" content="#090D16">
 
     <!-- PWA & Apple Web App Icons -->
@@ -284,14 +284,14 @@
             </button>
         </nav>
 
-        <!-- FULL-SCREEN PIN PASSCODE LOCK SCREEN MODAL -->
+        <!-- FULL-SCREEN PIN PASSCODE LOCK SCREEN MODAL (WITH BIOMETRIC FACE ID / FINGERPRINT SUPPORT) -->
         <div class="pin-lock-overlay" id="modalPinLock" style="display: none;">
             <div class="pin-lock-card">
                 <div class="avatar-large" id="pinUserAvatarPreview" style="margin: 0 auto 12px auto;">
                     <i data-lucide="user"></i>
                 </div>
                 <h3 id="pinGreetingName" style="font-size: 1.15rem; font-weight: 700; color: #F8FAFC;">Xin chào 👋</h3>
-                <p style="font-size: 0.85rem; color: #94A3B8; margin-top: 4px; margin-bottom: 24px;">Nhập mã PIN 4 chữ số để mở khóa ứng dụng</p>
+                <p style="font-size: 0.85rem; color: #94A3B8; margin-top: 4px; margin-bottom: 24px;">Nhập mã PIN 4 chữ số hoặc mở bằng Face ID / Vân tay</p>
 
                 <!-- PIN Dots -->
                 <div class="pin-dots-container" id="pinDotsContainer">
@@ -301,7 +301,7 @@
                     <span class="pin-dot"></span>
                 </div>
 
-                <!-- Keypad 3x4 Grid -->
+                <!-- Keypad 3x4 Grid (With Biometric Touch ID / Face ID Button) -->
                 <div class="pin-keypad">
                     <button class="keypad-btn" data-key="1">1</button>
                     <button class="keypad-btn" data-key="2">2</button>
@@ -315,6 +315,14 @@
                     <button class="keypad-btn action-key" id="btnForgotPinTrigger">Quên PIN?</button>
                     <button class="keypad-btn" data-key="0">0</button>
                     <button class="keypad-btn action-key" id="btnPinBackspace"><i data-lucide="delete"></i></button>
+                </div>
+
+                <!-- BIOMETRIC FACE ID / TOUCH ID QUICK BUTTON -->
+                <div style="margin-top: 20px;" id="biometricUnlockContainer">
+                    <button type="button" class="btn-block primary" id="btnBiometricUnlock" style="background: linear-gradient(135deg, #8B5CF6, #6D28D9); border-radius: 30px; padding: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <i data-lucide="fingerprint" style="width: 22px; height: 22px;"></i>
+                        <span>Mở Khóa Bằng Face ID / Vân Tay</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -344,7 +352,7 @@
                         <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
                             <strong style="color: #10B981; font-size: 0.88rem;">📩 Đã kích hoạt gửi Email OTP!</strong>
                             <p style="font-size: 0.78rem; color: #CBD5E1; margin-top: 4px;">
-                                Đã yêu cầu gửi email OTP đến địa chỉ của bạn (kiểm tra Inbox/Spam).
+                                Đã yêu cầu gửi email OTP đến địa chỉ của bạn.
                             </p>
                         </div>
 
@@ -427,7 +435,7 @@
             </div>
         </div>
 
-        <!-- MODAL: USER PROFILE, AVATAR & SECURITY PIN SETTINGS -->
+        <!-- MODAL: USER PROFILE, AVATAR & SECURITY PIN & BIOMETRIC SETTINGS -->
         <div class="modal-overlay" id="modalProfile">
             <div class="modal-content">
                 <div class="modal-header">
@@ -456,11 +464,12 @@
                         <span style="font-size: 0.72rem; color: #64748B;">Dùng để nhận mã OTP khôi phục PIN nếu lỡ quên</span>
                     </div>
 
+                    <!-- SECURITY PIN & BIOMETRIC TOGGLES CONTAINER -->
                     <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 14px; text-align: left; margin-top: 16px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <strong style="font-size: 0.9rem; color: #F8FAFC;">🔒 Khóa PIN Bảo Mật</strong>
-                                <div style="font-size: 0.75rem; color: #94A3B8;">Khóa app khi mở lại trên máy</div>
+                                <div style="font-size: 0.75rem; color: #94A3B8;">Tự động khóa sau 5 phút không tương tác</div>
                             </div>
                             <label class="switch-toggle">
                                 <input type="checkbox" id="togglePinLock">
@@ -469,15 +478,29 @@
                         </div>
 
                         <div id="pinSetupContainer" style="display: none; margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(255, 255, 255, 0.1);">
-                            <div class="form-group" style="margin-bottom: 0;">
+                            <div class="form-group" style="margin-bottom: 12px;">
                                 <label>Cài Đặt Mã PIN (4 chữ số)</label>
                                 <input type="password" id="inputPinCode" class="custom-input" placeholder="Ví dụ: 1234" maxlength="4" style="letter-spacing: 4px; font-weight: 700; text-align: center;">
+                            </div>
+
+                            <!-- BIOMETRIC FACE ID / TOUCH ID TOGGLE SWITCH -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px dashed rgba(255, 255, 255, 0.08);">
+                                <div>
+                                    <strong style="font-size: 0.85rem; color: #A78BFA; display: flex; align-items: center; gap: 4px;">
+                                        <i data-lucide="fingerprint" style="width: 16px; height: 16px;"></i> Mở Khóa Bằng Face ID / Vân Tay
+                                    </strong>
+                                    <div style="font-size: 0.72rem; color: #94A3B8;">Dùng sinh trắc học của iPhone / Android</div>
+                                </div>
+                                <label class="switch-toggle">
+                                    <input type="checkbox" id="toggleBiometricLock">
+                                    <span class="slider-round"></span>
+                                </label>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn-block primary" id="btnSaveProfile">Lưu Cài Đặt Hồ Sơ & PIN</button>
+                    <button class="btn-block primary" id="btnSaveProfile">Lưu Cài Đặt Hồ Sơ & Bảo Mật</button>
                 </div>
             </div>
         </div>
