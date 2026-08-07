@@ -1,4 +1,4 @@
-// === PERSONAL FINANCE APP V4 JS LOGIC (AUDITED 100% BULLETPROOF PRODUCTION CODE) ===
+// === PERSONAL FINANCE APP V4 JS LOGIC (WITH SMART SEARCH, KEYWORD TOTALS & STRICT CHRONOLOGICAL SORTING) ===
 
 // --- DEFAULT INITIAL STATE (CLEAN & READY FOR REAL TRANSACTIONS) ---
 const DEFAULT_STATE = {
@@ -40,7 +40,7 @@ const DEFAULT_STATE = {
     ]
 };
 
-// State Object
+// State Object (PRESERVES EXISTING USER DATA IN LOCALSTORAGE 100%)
 let state = loadState();
 
 function loadState() {
@@ -81,6 +81,11 @@ function formatVND(amount) {
     return new Intl.NumberFormat('vi-VN').format(val) + ' ₫';
 }
 
+function removeAccents(str) {
+    if (!str) return '';
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
 function safeCreateIcons() {
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
         try { window.lucide.createIcons(); } catch(e) {}
@@ -93,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initNavigation();
         initModals();
         initFilters();
+        initSearchListeners();
         renderApp();
     } catch(err) {
         console.error("Initialization error:", err);
@@ -127,6 +133,32 @@ function initFilters() {
     const yearSel = document.getElementById('selectYear');
     if (monthSel) monthSel.addEventListener('change', renderDashboard);
     if (yearSel) yearSel.addEventListener('change', renderDashboard);
+}
+
+// --- SEARCH LISTENERS ---
+function initSearchListeners() {
+    const inputSearch = document.getElementById('inputSearchTx');
+    const btnClear = document.getElementById('btnClearSearch');
+    const filterType = document.getElementById('searchFilterType');
+    const timeRange = document.getElementById('searchTimeRange');
+
+    if (inputSearch) {
+        inputSearch.addEventListener('input', () => {
+            if (btnClear) btnClear.style.display = inputSearch.value.trim() ? 'block' : 'none';
+            renderTransactions();
+        });
+    }
+
+    if (btnClear) {
+        btnClear.addEventListener('click', () => {
+            if (inputSearch) inputSearch.value = '';
+            btnClear.style.display = 'none';
+            renderTransactions();
+        });
+    }
+
+    if (filterType) filterType.addEventListener('change', renderTransactions);
+    if (timeRange) timeRange.addEventListener('change', renderTransactions);
 }
 
 // --- MAIN RENDER FUNCTION ---
@@ -266,20 +298,90 @@ function renderChart(year) {
     } catch(e) {}
 }
 
-// === TRANSACTIONS LOG ===
+// === TRANSACTIONS LOG (WITH STRICT CHRONOLOGICAL SORTING & SEARCH SUMMARY) ===
 function renderTransactions() {
     const container = document.getElementById('transactionList');
     if (!container) return;
     container.innerHTML = '';
 
-    const sorted = [...state.transactions].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    const searchKeyword = removeAccents(document.getElementById('inputSearchTx')?.value || '').trim();
+    const typeFilter = document.getElementById('searchFilterType')?.value || 'all';
+    const timeRangeFilter = document.getElementById('searchTimeRange')?.value || 'period';
 
-    if (sorted.length === 0) {
-        container.innerHTML = '<div style="text-align: center; color: #94A3B8; padding: 28px 12px; font-size: 0.9rem;">Chưa có giao dịch nào. Bấm nút <b>+</b> bên dưới để bắt đầu nhập liệu!</div>';
+    const selectedMonth = document.getElementById('selectMonth')?.value || 'all';
+    const selectedYear = parseInt(document.getElementById('selectYear')?.value || '2026');
+
+    // 1. STRICT CHRONOLOGICAL SORTING (MỚI NHẤT LÊN ĐẦU TIÊN)
+    const sortedAll = [...state.transactions].sort((a, b) => {
+        const timeA = new Date(a.date || 0).getTime();
+        const timeB = new Date(b.date || 0).getTime();
+        if (timeB !== timeA) return timeB - timeA; // Date descending
+        return (b.id || '').localeCompare(a.id || ''); // Newer entry first
+    });
+
+    // 2. FILTER BY TIME RANGE & TYPE
+    let filteredList = sortedAll.filter(tx => {
+        if (!tx.date) return false;
+        const d = new Date(tx.date);
+        if (isNaN(d.getTime())) return false;
+
+        // Type filter
+        if (typeFilter !== 'all' && tx.type !== typeFilter) return false;
+
+        // Time Range filter
+        if (timeRangeFilter === 'period') {
+            if (d.getFullYear() !== selectedYear) return false;
+            if (selectedMonth !== 'all' && (d.getMonth() + 1) !== parseInt(selectedMonth)) return false;
+        }
+
+        return true;
+    });
+
+    // 3. FILTER BY SEARCH KEYWORD & CALCULATE KEYWORD TOTALS
+    let isSearching = searchKeyword.length > 0;
+    if (isSearching) {
+        filteredList = filteredList.filter(tx => {
+            const acc = state.accounts.find(a => a.id === tx.accountId) || { name: '' };
+            const noteClean = removeAccents(tx.note || '');
+            const catClean = removeAccents(tx.category || '');
+            const accClean = removeAccents(acc.name || '');
+
+            return noteClean.includes(searchKeyword) || catClean.includes(searchKeyword) || accClean.includes(searchKeyword);
+        });
+    }
+
+    // 4. UPDATE SEARCH SUMMARY ANALYTICS CARD
+    const summaryCard = document.getElementById('searchSummaryCard');
+    const summaryTitle = document.getElementById('searchSummaryTitle');
+    const summaryCount = document.getElementById('searchSummaryCount');
+    const summaryExp = document.getElementById('searchTotalExpense');
+    const summaryInc = document.getElementById('searchTotalIncome');
+
+    if (summaryCard) {
+        if (isSearching) {
+            summaryCard.style.display = 'block';
+            const rawSearchQuery = document.getElementById('inputSearchTx')?.value || '';
+            if (summaryTitle) summaryTitle.textContent = `🎯 Kết quả tra cứu từ khóa: "${rawSearchQuery}"`;
+            if (summaryCount) summaryCount.textContent = `${filteredList.length} giao dịch`;
+
+            const totalSearchExp = filteredList.filter(t => t.type === 'expense').reduce((s, t) => s + (t.amount || 0), 0);
+            const totalSearchInc = filteredList.filter(t => t.type === 'income').reduce((s, t) => s + (t.amount || 0), 0);
+
+            if (summaryExp) summaryExp.textContent = formatVND(totalSearchExp);
+            if (summaryInc) summaryInc.textContent = formatVND(totalSearchInc);
+        } else {
+            summaryCard.style.display = 'none';
+        }
+    }
+
+    // 5. RENDER TRANSACTION CARDS
+    if (filteredList.length === 0) {
+        const msg = isSearching ? 'Không tìm thấy giao dịch nào khớp với từ khóa trên.' : 'Chưa có giao dịch nào trong kỳ này. Bấm nút <b>+</b> để bắt đầu!';
+        container.innerHTML = `<div style="text-align: center; color: #94A3B8; padding: 28px 12px; font-size: 0.9rem;">${msg}</div>`;
         return;
     }
 
-    sorted.forEach(tx => {
+    filteredList.forEach(tx => {
         const acc = state.accounts.find(a => a.id === tx.accountId) || { name: 'Ví' };
         const iconName = tx.type === 'income' ? 'arrow-down-left' : 'arrow-up-right';
         const colorClass = tx.type === 'income' ? 'income' : 'expense';
@@ -293,7 +395,7 @@ function renderTransactions() {
             </div>
             <div class="tx-details">
                 <div class="tx-cat-name">${tx.category}</div>
-                <div class="tx-meta">${tx.date} • ${acc.name} • <span style="opacity: 0.7">${tx.note || ''}</span></div>
+                <div class="tx-meta">${tx.date} • ${acc.name} • <span style="opacity: 0.75">${tx.note || ''}</span></div>
             </div>
             <div class="tx-right">
                 <div class="tx-amount ${colorClass}">${sign}${formatVND(tx.amount || 0)}</div>

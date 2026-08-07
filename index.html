@@ -177,13 +177,53 @@
                 </div>
             </section>
 
-            <!-- TAB 2: TRANSACTIONS LOG -->
+            <!-- TAB 2: TRANSACTIONS LOG & SMART SEARCH -->
             <section id="tab-transactions" class="tab-page">
                 <div class="section-card">
                     <div class="section-header">
                         <h3><i data-lucide="receipt"></i> Nhật Ký Giao Dịch</h3>
                         <button class="btn-sm primary" id="btnOpenAddModal"><i data-lucide="plus"></i> Thêm Giao Dịch</button>
                     </div>
+
+                    <!-- SMART SEARCH & ANALYTICS BAR -->
+                    <div class="search-box-container" style="margin-bottom: 14px;">
+                        <div style="position: relative; display: flex; align-items: center;">
+                            <input type="text" id="inputSearchTx" class="custom-input" placeholder="🔍 Tìm theo nhà hàng, ghi chú, danh mục, ví..." style="padding-right: 36px;">
+                            <button id="btnClearSearch" style="position: absolute; right: 10px; background: none; border: none; color: #94A3B8; cursor: pointer; display: none;"><i data-lucide="x-circle"></i></button>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                            <select id="searchFilterType" class="custom-select" style="flex: 1; font-size: 0.8rem;">
+                                <option value="all">Tất cả loại (Thu & Chi)</option>
+                                <option value="expense">Chỉ Chi Tiêu</option>
+                                <option value="income">Chỉ Thu Nhập</option>
+                            </select>
+                            <select id="searchTimeRange" class="custom-select" style="flex: 1; font-size: 0.8rem;">
+                                <option value="period">Theo Kỳ Báo Cáo</option>
+                                <option value="all_time">Tất Cả Thời Gian</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- SEARCH SUMMARY ANALYTICS CARD -->
+                    <div id="searchSummaryCard" style="display: none; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 14px; padding: 14px; margin-bottom: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 0.85rem; font-weight: 600; color: #F8FAFC;" id="searchSummaryTitle">🎯 Kết quả tra cứu: "A"</span>
+                            <span class="badge" id="searchSummaryCount" style="background: rgba(59, 130, 246, 0.25); color: #3B82F6;">0 giao dịch</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+                            <div style="background: rgba(239, 68, 68, 0.1); border-radius: 8px; padding: 8px 10px;">
+                                <span style="font-size: 0.72rem; color: #94A3B8; display: block;">Tổng Chi Từ Khóa</span>
+                                <strong id="searchTotalExpense" style="color: #EF4444; font-size: 0.95rem;">0 ₫</strong>
+                            </div>
+                            <div style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; padding: 8px 10px;">
+                                <span style="font-size: 0.72rem; color: #94A3B8; display: block;">Tổng Thu Từ Khóa</span>
+                                <strong id="searchTotalIncome" style="color: #10B981; font-size: 0.95rem;">0 ₫</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TRANSACTION ITEMS LIST -->
                     <div class="tx-list" id="transactionList">
                         <!-- Items rendered by JS -->
                     </div>
@@ -266,22 +306,22 @@
                         • <strong>20% Tiết kiệm & Đầu tư:</strong> Quỹ dự phòng, chứng khoán, tích lũy.
                     </p>
 
-                    <h5 style="color: #10B981; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">2. Phân Bổ Thặng Dư Ròng</h5>
+                    <h5 style="color: #10B981; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">2. Tra Cứu & Thống Kê Từ Khóa</h5>
+                    <p style="margin-bottom: 10px;">
+                        • Tại tab <strong>Giao Dịch</strong>, gõ tên nhà hàng, đối tác hoặc ghi chú vào ô Tìm Kiếm.<br>
+                        • App tự động lọc danh sách và <strong>tính tổng tiền thu/chi theo từ khóa đó</strong> lập tức.
+                    </p>
+
+                    <h5 style="color: #F59E0B; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">3. Phân Bổ Thặng Dư Ròng</h5>
                     <p style="margin-bottom: 10px;">
                         • Cuối mỗi tháng, nếu <strong>Thu Nhập > Chi Tiêu</strong>, trang Tổng Quan sẽ xuất hiện Thẻ Thặng Dư Ròng.<br>
                         • Nhấn <strong>"Phân Bổ Vào Mục Tiêu Ngay"</strong> để chia số tiền dư đó vào các mục tiêu như <em>Quỹ dự phòng, Mua xe, Mua nhà...</em>
                     </p>
 
-                    <h5 style="color: #F59E0B; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">3. Quản Lý Ví & Số Dư Đầu Kỳ</h5>
+                    <h5 style="color: #8B5CF6; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">4. Quản Lý Ví & Số Dư Đầu Kỳ</h5>
                     <p style="margin-bottom: 10px;">
                         • Vào tab <strong>Ví & Số Dư</strong> ➔ Bấm <strong>Quản Lý Ví & Đầu Kỳ</strong>.<br>
                         • Tại đây bạn có thể <em>Thêm ví mới, Đổi tên ngân hàng, Nhập số dư đầu kỳ (kể cả 0đ) hoặc Xóa ví</em>.
-                    </p>
-
-                    <h5 style="color: #8B5CF6; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">4. Ghi Chép Giao Dịch (Sửa / Xóa)</h5>
-                    <p style="margin-bottom: 10px;">
-                        • Bấm nút <strong>+</strong> ở giữa để thêm giao dịch thu/chi mới.<br>
-                        • Trong tab <strong>Giao Dịch</strong>, mỗi dòng đều có nút <strong>Sửa</strong> và <strong>Xóa</strong> để điều chỉnh nếu có sai sót.
                     </p>
 
                     <h5 style="color: #EC4899; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">5. Cài Đặt Màn Hình Chính (Add to Home Screen)</h5>
