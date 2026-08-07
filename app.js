@@ -1,4 +1,4 @@
-// === PERSONAL FINANCE APP V4 JS LOGIC (WITH NATIVE WEBAUTHN PASSKEY ENROLLMENT & FACE ID AUTHENTICATION) ===
+// === PERSONAL FINANCE APP V4 JS LOGIC (WITH AUTOMATIC FIRST-TIME USER ONBOARDING PROFILE POPUP) ===
 
 // --- DEFAULT INITIAL STATE ---
 const DEFAULT_STATE = {
@@ -10,7 +10,8 @@ const DEFAULT_STATE = {
         recoveryEmail: '', // Recovery email address
         biometricEnabled: false, // WebAuthn Face ID / Touch ID / Fingerprint
         biometricCredentialId: null, // Registered Passkey ID
-        biometricRawId: null // Registered Passkey Raw ID array
+        biometricRawId: null, // Registered Passkey Raw ID array
+        hasCompletedOnboarding: false // Flag for first-time welcome setup
     },
     accounts: [
         { id: 'acc-1', name: 'Tài khoản VCB', type: 'Tài khoản thanh toán', initialBalance: 0, note: 'Tài khoản nhận lương chính' },
@@ -54,9 +55,10 @@ function loadState() {
         const saved = localStorage.getItem('personal_finance_app_v4');
         if (saved) {
             const parsed = JSON.parse(saved);
-            if (!parsed.userProfile) parsed.userProfile = { name: 'Tài Chính Cá Nhân', avatar: '', pinEnabled: false, pinCode: '', recoveryEmail: '', biometricEnabled: false };
+            if (!parsed.userProfile) parsed.userProfile = { name: 'Tài Chính Cá Nhân', avatar: '', pinEnabled: false, pinCode: '', recoveryEmail: '', biometricEnabled: false, hasCompletedOnboarding: false };
             if (parsed.userProfile.pinEnabled === undefined) parsed.userProfile.pinEnabled = false;
             if (parsed.userProfile.biometricEnabled === undefined) parsed.userProfile.biometricEnabled = false;
+            if (parsed.userProfile.hasCompletedOnboarding === undefined) parsed.userProfile.hasCompletedOnboarding = false;
             if (!parsed.userProfile.pinCode) parsed.userProfile.pinCode = '';
             if (!parsed.userProfile.recoveryEmail) parsed.userProfile.recoveryEmail = '';
             if (!parsed.goals) parsed.goals = [];
@@ -116,13 +118,44 @@ document.addEventListener('DOMContentLoaded', () => {
         initFilters();
         initSearchListeners();
         renderApp();
+        checkFirstTimeOnboarding();
     } catch(err) {
         console.error("Initialization error:", err);
     }
 });
 
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(() => { try { renderApp(); } catch(e) {} }, 100);
+    setTimeout(() => { try { renderApp(); checkFirstTimeOnboarding(); } catch(e) {} }, 100);
+}
+
+// AUTOMATIC FIRST-TIME USER PROFILE POPUP
+function checkFirstTimeOnboarding() {
+    if (state.userProfile && !state.userProfile.hasCompletedOnboarding) {
+        const isUnlockedOrNoPin = !state.userProfile.pinEnabled || sessionStorage.getItem('app_unlocked_session') === 'true';
+        if (isUnlockedOrNoPin) {
+            setTimeout(() => {
+                const modalProfile = document.getElementById('modalProfile');
+                if (modalProfile && !modalProfile.classList.contains('active')) {
+                    const inputUserName = document.getElementById('inputUserName');
+                    const inputRecoveryEmail = document.getElementById('inputRecoveryEmail');
+                    const togglePinLock = document.getElementById('togglePinLock');
+                    const toggleBiometricLock = document.getElementById('toggleBiometricLock');
+                    const pinSetupContainer = document.getElementById('pinSetupContainer');
+                    const inputPinCode = document.getElementById('inputPinCode');
+
+                    if (inputUserName) inputUserName.value = state.userProfile.name || 'Tài Chính Cá Nhân';
+                    if (inputRecoveryEmail) inputRecoveryEmail.value = state.userProfile.recoveryEmail || '';
+                    if (togglePinLock) togglePinLock.checked = !!state.userProfile.pinEnabled;
+                    if (toggleBiometricLock) toggleBiometricLock.checked = !!state.userProfile.biometricEnabled;
+                    if (pinSetupContainer) pinSetupContainer.style.display = state.userProfile.pinEnabled ? 'block' : 'none';
+                    if (inputPinCode) inputPinCode.value = state.userProfile.pinCode || '';
+
+                    modalProfile.classList.add('active');
+                    safeCreateIcons();
+                }
+            }, 600);
+        }
+    }
 }
 
 // --- 5-MINUTE AUTO-LOCK INACTIVITY TIMER ---
@@ -861,7 +894,7 @@ function renderGoals() {
             </div>
             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
                 <button class="btn-icon-sub edit-goal-btn" data-id="${goal.id}" title="Sửa mục tiêu"><i data-lucide="edit-2"></i> Sửa</button>
-                <button class="btn-icon-sub danger delete-goal-btn" data-id="${goal.id}" title="Xóa mục tiêu"><i data-lucide="trash-2"></i> Xóa</button>
+                <button class="btn-icon-sub danger delete-goal-btn" data-id="${goal.id}" title="Xóa mục tiêu"><i data-lucide="trash-2"></i> Xóa mục tiêu</button>
             </div>
         `;
         container.appendChild(card);
@@ -988,7 +1021,13 @@ function initModals() {
         });
     }
 
-    if (closeProfileModal) closeProfileModal.addEventListener('click', () => modalProfile.classList.remove('active'));
+    if (closeProfileModal) {
+        closeProfileModal.addEventListener('click', () => {
+            state.userProfile.hasCompletedOnboarding = true;
+            saveState();
+            if (modalProfile) modalProfile.classList.remove('active');
+        });
+    }
 
     if (btnTriggerAvatarUpload && inputAvatarFile) {
         btnTriggerAvatarUpload.addEventListener('click', () => inputAvatarFile.click());
@@ -1030,6 +1069,7 @@ function initModals() {
             state.userProfile.pinEnabled = pinEnabled;
             state.userProfile.pinCode = pinEnabled ? pinVal : '';
             state.userProfile.avatar = tempAvatarBase64;
+            state.userProfile.hasCompletedOnboarding = true;
 
             saveState();
             if (modalProfile) modalProfile.classList.remove('active');
