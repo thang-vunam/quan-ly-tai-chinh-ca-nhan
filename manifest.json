@@ -1,22 +1,16 @@
 {
-  "name": "Quản Lý Tài Chính Cá Nhân",
-  "short_name": "Tài Chính",
-  "description": "Ứng dụng Quản Lý Tài Chính Cá Nhân 50/30/20 & Phân Bổ Thặng Dư Ròng",
-  "start_url": "/",
+  "name": "Pomodoro Focus Studio",
+  "short_name": "Focus Studio",
+  "description": "Ứng dụng đồng hồ Pomodoro tập trung làm việc offline",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0F172A",
-  "theme_color": "#0F172A",
+  "background_color": "#0b0f19",
+  "theme_color": "#f43f5e",
   "icons": [
     {
-      "src": "apple-touch-icon.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23f43f5e'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>🍅</text></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
     }
   ]
 }
