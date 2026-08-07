@@ -1,312 +1,654 @@
 <!DOCTYPE html>
-<html lang="vi" data-theme="dark">
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pomodoro Focus Studio</title>
-  <meta name="description" content="Ứng dụng đồng hồ Pomodoro hiện đại hỗ trợ tập trung làm việc, tiếng ồn trắng và quản lý mục tiêu.">
-  
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Quản Lý Tài Chính Cá Nhân V4 - 50/30/20 & PIN & Biometrics</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Ứng dụng quản lý tài chính cá nhân chuẩn 50/30/20, phân bổ thặng dư ròng, tra cứu từ khóa thông minh và bảo mật PIN / Face ID / Touch ID / Vân tay.">
+    <meta name="theme-color" content="#090D16">
+
+    <!-- PWA & Apple Web App Icons -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Google Fonts & Lucide Icons & Chart.js & EmailJS SDK -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Ambient Background Glows -->
-  <div class="bg-glow bg-glow-1"></div>
-  <div class="bg-glow bg-glow-2"></div>
-  <div class="bg-glow bg-glow-3"></div>
+    <div class="app-container">
+        <!-- Universal Mobile Header Bar -->
+        <header class="top-bar">
+            <div class="user-profile" id="btnOpenProfileModal">
+                <div class="avatar" id="headerAvatarContainer">
+                    <i data-lucide="user"></i>
+                </div>
+                <div>
+                    <span class="greeting">Xin chào 👋</span>
+                    <h2 class="user-name" id="headerUserName">Tài Chính Cá Nhân</h2>
+                </div>
+            </div>
+            <div class="top-actions">
+                <button class="icon-btn" id="btnOpenGuideModal" title="Hướng dẫn sử dụng"><i data-lucide="help-circle"></i></button>
+                <button class="icon-btn" id="btnExportData" title="Sao lưu dữ liệu"><i data-lucide="download"></i></button>
+                <button class="icon-btn" id="btnQuickAddTop" title="Thêm giao dịch mới"><i data-lucide="plus"></i></button>
+            </div>
+        </header>
 
-  <div class="app-container">
-    <!-- Header -->
-    <header class="app-header">
-      <div class="logo">
-        <div class="logo-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
+        <!-- Main Scrollable Application Content -->
+        <main class="main-content">
+            <!-- TAB 1: DASHBOARD OVERVIEW & 50/30/20 ANALYTICS -->
+            <section id="tab-dashboard" class="tab-page active">
+                <!-- Month / Year Selector Card -->
+                <div class="filter-card">
+                    <div class="filter-label">
+                        <i data-lucide="calendar"></i>
+                        <span>Kỳ báo cáo:</span>
+                    </div>
+                    <div class="filter-controls">
+                        <select id="selectMonth" class="custom-select">
+                            <option value="all">Tất cả các tháng</option>
+                            <option value="1">Tháng 1</option>
+                            <option value="2">Tháng 2</option>
+                            <option value="3">Tháng 3</option>
+                            <option value="4">Tháng 4</option>
+                            <option value="5">Tháng 5</option>
+                            <option value="6">Tháng 6</option>
+                            <option value="7">Tháng 7</option>
+                            <option value="8" selected>Tháng 8</option>
+                            <option value="9">Tháng 9</option>
+                            <option value="10">Tháng 10</option>
+                            <option value="11">Tháng 11</option>
+                            <option value="12">Tháng 12</option>
+                        </select>
+                        <select id="selectYear" class="custom-select">
+                            <option value="2026" selected>2026</option>
+                            <option value="2025">2025</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- KPI Overview Grid (Income, Expense, Net Savings, Savings Rate) -->
+                <div class="kpi-grid">
+                    <div class="kpi-card income">
+                        <div class="kpi-icon"><i data-lucide="arrow-down-left"></i></div>
+                        <div>
+                            <span class="kpi-title">Tổng Thu Nhập</span>
+                            <h3 class="kpi-value" id="kpiIncome">0 ₫</h3>
+                        </div>
+                    </div>
+                    <div class="kpi-card expense">
+                        <div class="kpi-icon"><i data-lucide="arrow-up-right"></i></div>
+                        <div>
+                            <span class="kpi-title">Tổng Chi Tiêu</span>
+                            <h3 class="kpi-value" id="kpiExpense">0 ₫</h3>
+                        </div>
+                    </div>
+                    <div class="kpi-card net">
+                        <div class="kpi-icon"><i data-lucide="wallet"></i></div>
+                        <div>
+                            <span class="kpi-title">Thặng Dư Ròng</span>
+                            <h3 class="kpi-value" id="kpiNet">0 ₫</h3>
+                        </div>
+                    </div>
+                    <div class="kpi-card rate">
+                        <div class="kpi-icon"><i data-lucide="pie-chart"></i></div>
+                        <div>
+                            <span class="kpi-title">Tỷ Lệ Tích Lũy</span>
+                            <h3 class="kpi-value" id="kpiRate">0%</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SMART SURPLUS ALLOCATION PROMPT CARD (Visible when Net Surplus > 0) -->
+                <div id="surplusAllocationCard" class="section-card" style="display: none; background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(59, 130, 246, 0.18)); border: 1px solid rgba(16, 185, 129, 0.4);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span class="badge" style="background: rgba(16, 185, 129, 0.25); color: #10B981; font-weight: 700;">🎉 Thặng Dư Ròng Kỳ Này</span>
+                            <h3 style="font-size: 1.1rem; color: #10B981; margin-top: 4px;" id="cardSurplusValue">0 ₫</h3>
+                        </div>
+                        <button class="btn-sm primary" id="btnOpenAllocateSurplusModal" style="background: linear-gradient(135deg, #10B981, #059669);"><i data-lucide="sparkles"></i> Phân Bổ Vào Mục Tiêu Ngay</button>
+                    </div>
+                </div>
+
+                <!-- 50/30/20 Budget Allocation Cards -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i data-lucide="sliders"></i> Phân Bổ Theo Quy Tắc 50/30/20</h3>
+                    </div>
+
+                    <div class="rule-progress-list">
+                        <!-- 50% Needs -->
+                        <div class="rule-item">
+                            <div class="rule-title-row">
+                                <span class="rule-name"><span class="dot needs"></span> Thiết yếu (50%)</span>
+                                <span class="rule-amount" id="ruleNeedsAmount">0 / 0 ₫</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill needs" id="ruleNeedsBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- 30% Wants -->
+                        <div class="rule-item">
+                            <div class="rule-title-row">
+                                <span class="rule-name"><span class="dot wants"></span> Mong muốn (30%)</span>
+                                <span class="rule-amount" id="ruleWantsAmount">0 / 0 ₫</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill wants" id="ruleWantsBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- 20% Savings -->
+                        <div class="rule-item">
+                            <div class="rule-title-row">
+                                <span class="rule-name"><span class="dot savings"></span> Tiết kiệm & Đầu tư (20%)</span>
+                                <span class="rule-amount" id="ruleSavingsAmount">0 / 0 ₫</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill savings" id="ruleSavingsBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visual Charts Section -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i data-lucide="bar-chart-3"></i> Biểu Đồ So Sánh Thu - Chi</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="incomeExpenseChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: TRANSACTIONS LOG & SMART SEARCH -->
+            <section id="tab-transactions" class="tab-page">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i data-lucide="receipt"></i> Nhật Ký Giao Dịch</h3>
+                        <button class="btn-sm primary" id="btnOpenAddModal"><i data-lucide="plus"></i> Thêm Giao Dịch</button>
+                    </div>
+
+                    <!-- SMART SEARCH & ANALYTICS BAR -->
+                    <div class="search-box-container" style="margin-bottom: 14px;">
+                        <div style="position: relative; display: flex; align-items: center;">
+                            <input type="text" id="inputSearchTx" class="custom-input" placeholder="🔍 Tìm theo nhà hàng, ghi chú, danh mục, ví..." style="padding-right: 36px;">
+                            <button id="btnClearSearch" style="position: absolute; right: 10px; background: none; border: none; color: #94A3B8; cursor: pointer; display: none;"><i data-lucide="x-circle"></i></button>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                            <select id="searchFilterType" class="custom-select" style="flex: 1; font-size: 0.8rem;">
+                                <option value="all">Tất cả loại (Thu & Chi)</option>
+                                <option value="expense">Chỉ Chi Tiêu</option>
+                                <option value="income">Chỉ Thu Nhập</option>
+                            </select>
+                            <select id="searchTimeRange" class="custom-select" style="flex: 1; font-size: 0.8rem;">
+                                <option value="period">Theo Kỳ Báo Cáo</option>
+                                <option value="all_time">Tất Cả Thời Gian</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- SEARCH SUMMARY ANALYTICS CARD -->
+                    <div id="searchSummaryCard" style="display: none; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 14px; padding: 14px; margin-bottom: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 0.85rem; font-weight: 600; color: #F8FAFC;" id="searchSummaryTitle">🎯 Kết quả tra cứu: "A"</span>
+                            <span class="badge" id="searchSummaryCount" style="background: rgba(59, 130, 246, 0.25); color: #3B82F6;">0 giao dịch</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+                            <div style="background: rgba(239, 68, 68, 0.1); border-radius: 8px; padding: 8px 10px;">
+                                <span style="font-size: 0.72rem; color: #94A3B8; display: block;">Tổng Chi Từ Khóa</span>
+                                <strong id="searchTotalExpense" style="color: #EF4444; font-size: 0.95rem;">0 ₫</strong>
+                            </div>
+                            <div style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; padding: 8px 10px;">
+                                <span style="font-size: 0.72rem; color: #94A3B8; display: block;">Tổng Thu Từ Khóa</span>
+                                <strong id="searchTotalIncome" style="color: #10B981; font-size: 0.95rem;">0 ₫</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TRANSACTION ITEMS LIST -->
+                    <div class="tx-list" id="transactionList">
+                        <!-- Items rendered by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: ACCOUNTS & WALLETS -->
+            <section id="tab-accounts" class="tab-page">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i data-lucide="landmark"></i> Số Dư Tài Khoản & Ví</h3>
+                        <button class="btn-sm secondary" id="btnEditInitialBalance"><i data-lucide="edit-3"></i> Quản Lý Ví & Đầu Kỳ</button>
+                    </div>
+
+                    <div class="accounts-grid" id="accountsList">
+                        <!-- Account cards rendered by JS -->
+                    </div>
+
+                    <div class="total-asset-box">
+                        <span>Tổng Tài Sản Khả Dụng:</span>
+                        <strong id="totalAssetValue">0 ₫</strong>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: GOALS -->
+            <section id="tab-goals" class="tab-page">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i data-lucide="target"></i> Mục Tiêu Tài Chính Dài Hạn</h3>
+                        <button class="btn-sm primary" id="btnAddGoalModal"><i data-lucide="plus"></i> Tạo Mục Tiêu</button>
+                    </div>
+                    <div class="goals-list" id="goalsList">
+                        <!-- Goals rendered by JS -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Floating Quick Add Action Button -->
+        <button class="fab-btn" id="fabAddTx"><i data-lucide="plus"></i></button>
+
+        <!-- Bottom Navigation Bar (iOS Style) -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-tab="tab-dashboard">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Tổng Quan</span>
+            </button>
+            <button class="nav-item" data-tab="tab-transactions">
+                <i data-lucide="list-checks"></i>
+                <span>Giao Dịch</span>
+            </button>
+            <button class="nav-item" data-tab="tab-accounts">
+                <i data-lucide="credit-card"></i>
+                <span>Ví & Số Dư</span>
+            </button>
+            <button class="nav-item" data-tab="tab-goals">
+                <i data-lucide="compass"></i>
+                <span>Mục Tiêu</span>
+            </button>
+        </nav>
+
+        <!-- FULL-SCREEN PIN PASSCODE LOCK SCREEN MODAL (WITH BIOMETRIC FACE ID / FINGERPRINT SUPPORT) -->
+        <div class="pin-lock-overlay" id="modalPinLock" style="display: none;">
+            <div class="pin-lock-card">
+                <div class="avatar-large" id="pinUserAvatarPreview" style="margin: 0 auto 12px auto;">
+                    <i data-lucide="user"></i>
+                </div>
+                <h3 id="pinGreetingName" style="font-size: 1.15rem; font-weight: 700; color: #F8FAFC;">Xin chào 👋</h3>
+                <p style="font-size: 0.85rem; color: #94A3B8; margin-top: 4px; margin-bottom: 24px;">Nhập mã PIN 4 chữ số hoặc mở bằng Face ID / Vân tay</p>
+
+                <!-- PIN Dots -->
+                <div class="pin-dots-container" id="pinDotsContainer">
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                </div>
+
+                <!-- Keypad 3x4 Grid (With Biometric Touch ID / Face ID Button) -->
+                <div class="pin-keypad">
+                    <button class="keypad-btn" data-key="1">1</button>
+                    <button class="keypad-btn" data-key="2">2</button>
+                    <button class="keypad-btn" data-key="3">3</button>
+                    <button class="keypad-btn" data-key="4">4</button>
+                    <button class="keypad-btn" data-key="5">5</button>
+                    <button class="keypad-btn" data-key="6">6</button>
+                    <button class="keypad-btn" data-key="7">7</button>
+                    <button class="keypad-btn" data-key="8">8</button>
+                    <button class="keypad-btn" data-key="9">9</button>
+                    <button class="keypad-btn action-key" id="btnForgotPinTrigger">Quên PIN?</button>
+                    <button class="keypad-btn" data-key="0">0</button>
+                    <button class="keypad-btn action-key" id="btnPinBackspace"><i data-lucide="delete"></i></button>
+                </div>
+
+                <!-- BIOMETRIC FACE ID / TOUCH ID QUICK BUTTON -->
+                <div style="margin-top: 20px;" id="biometricUnlockContainer">
+                    <button type="button" class="btn-block primary" id="btnBiometricUnlock" style="background: linear-gradient(135deg, #8B5CF6, #6D28D9); border-radius: 30px; padding: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <i data-lucide="fingerprint" style="width: 22px; height: 22px;"></i>
+                        <span>Mở Khóa Bằng Face ID / Vân Tay</span>
+                    </button>
+                </div>
+            </div>
         </div>
-        <h1>Focus Studio <span class="badge">Pomodoro</span></h1>
-      </div>
 
-      <div class="header-actions">
-        <button id="pip-btn" class="icon-btn" title="Ghim đồng hồ nổi trên màn hình (Picture-in-Picture)" aria-label="Always on Top Float Clock">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
-        </button>
-        <button id="theme-toggle-btn" class="icon-btn" title="Đổi giao diện Sáng/Tối" aria-label="Toggle Theme">
-          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-        </button>
-        <button id="stats-btn" class="icon-btn" title="Thống kê năng suất" aria-label="View Stats">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-        </button>
-        <button id="settings-btn" class="icon-btn" title="Cài đặt" aria-label="Settings">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        </button>
-      </div>
-    </header>
+        <!-- MODAL: FORGOT PIN & EMAIL OTP RECOVERY -->
+        <div class="modal-overlay" id="modalForgotPin">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i data-lucide="key-round" style="color: #F59E0B;"></i> Khôi Phục PIN Qua Email</h4>
+                    <button class="close-btn" id="closeForgotPinModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Step 1: Input Registered Email -->
+                    <div id="stepForgotEmail">
+                        <p style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 12px;">
+                            Nhập địa chỉ Email Khôi Phục mà bạn đã đăng ký trong Hồ Sơ Cá Nhân để nhận Mã OTP xác thực:
+                        </p>
+                        <div class="form-group">
+                            <label>Email Khôi Phục Đã Đăng Ký</label>
+                            <input type="email" id="inputForgotEmail" class="custom-input" placeholder="Ví dụ: name@gmail.com" required>
+                        </div>
+                        <button type="button" class="btn-block primary" id="btnSendOtpEmail" style="background: linear-gradient(135deg, #F59E0B, #D97706); font-weight: 700;">Gửi Mã OTP Xác Thực</button>
+                    </div>
 
-    <!-- Main Grid -->
-    <main class="main-layout">
-      <!-- Left Column: Timer Card -->
-      <section class="card timer-card">
-        <!-- Mode Tabs -->
-        <div class="mode-selector">
-          <button class="mode-btn active" data-mode="work">
-            <span>🔥</span> Làm việc
-          </button>
-          <button class="mode-btn" data-mode="shortBreak">
-            <span>☕</span> Nghỉ ngắn
-          </button>
-          <button class="mode-btn" data-mode="longBreak">
-            <span>🌴</span> Nghỉ dài
-          </button>
+                    <!-- Step 2: Input OTP & Set New PIN (Initially hidden) -->
+                    <div id="stepForgotOtp" style="display: none;">
+                        <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+                            <strong style="color: #10B981; font-size: 0.88rem;">📩 Đã kích hoạt gửi Email OTP!</strong>
+                            <p style="font-size: 0.78rem; color: #CBD5E1; margin-top: 4px;">
+                                Đã yêu cầu gửi email OTP đến địa chỉ của bạn.
+                            </p>
+                        </div>
+
+                        <!-- OTP DISPLAY BOX AS A DIRECT DUAL GUARANTEE -->
+                        <div id="fallbackOtpDisplayBox" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 12px; padding: 10px; margin-bottom: 14px; text-align: center;">
+                            <span style="font-size: 0.78rem; color: #F59E0B; display: block; font-weight: 600;">💡 Mã OTP Xác Thực Trực Tiếp Của Bạn:</span>
+                            <strong id="displayOtpValue" style="font-size: 1.5rem; letter-spacing: 6px; color: #F8FAFC; display: block; margin-top: 2px;">123456</strong>
+                            <span style="font-size: 0.72rem; color: #94A3B8; display: block; margin-top: 2px;">(Nhập mã này bên dưới để đổi PIN mới ngay lập tức)</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Mã OTP (6 chữ số)</label>
+                            <input type="text" id="inputOtpCode" class="custom-input" placeholder="Nhập 6 số ở trên" maxlength="6" style="letter-spacing: 4px; font-weight: 700; font-size: 1.1rem; text-align: center;">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Mã PIN 4 Số Mới</label>
+                            <input type="password" id="inputNewPinAfterOtp" class="custom-input" placeholder="Ví dụ: 1234" maxlength="4" style="letter-spacing: 4px; text-align: center;">
+                        </div>
+
+                        <button type="button" class="btn-block primary" id="btnVerifyOtpAndResetPin" style="background: linear-gradient(135deg, #10B981, #059669);">Xác Nhận OTP & Tạo PIN Mới</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Timer Circle -->
-        <div class="timer-display-container">
-          <svg class="progress-ring" width="300" height="300">
-            <circle class="progress-ring-bg" cx="150" cy="150" r="130"></circle>
-            <circle id="progress-bar" class="progress-ring-fill" cx="150" cy="150" r="130"></circle>
-          </svg>
-          
-          <div class="timer-text-content">
-            <div id="timer-display" class="timer-digits">25:00</div>
-            <div id="session-status" class="session-label">Sẵn sàng tập trung!</div>
-            <div class="cycle-tracker">
-              <span id="cycle-count-display">Lượt #1</span> · <span id="cycles-remaining-display">3 lượt tới Nghỉ dài</span>
+        <!-- MODAL: USER GUIDE (HDSD) - COMPLETE ALL 6 SECTIONS -->
+        <div class="modal-overlay" id="modalUserGuide">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i data-lucide="book-open" style="color: #3B82F6;"></i> Hướng Dẫn Sử Dụng App</h4>
+                    <button class="close-btn" id="closeGuideModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body" style="font-size: 0.88rem; line-height: 1.5; color: #CBD5E1;">
+                    <div style="margin-bottom: 16px; background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3B82F6; padding: 12px; border-radius: 8px;">
+                        <strong style="color: #F8FAFC;">💡 Triết lý ứng dụng:</strong><br>
+                        Quản lý tài chính cá nhân thông minh theo **Quy tắc 50/30/20** kết hợp phương pháp **Phân Bổ Thặng Dư Ròng** vào các mục tiêu dài hạn.
+                    </div>
+
+                    <h5 style="color: #3B82F6; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">1. Quy Tắc 50/30/20</h5>
+                    <p style="margin-bottom: 10px;">
+                        • <strong>50% Thiết yếu:</strong> Tiền nhà, điện nước, ăn uống cơ bản, đi lại.<br>
+                        • <strong>30% Mong muốn:</strong> Giải trí, mua sắm cá nhân, cà phê, du lịch.<br>
+                        • <strong>20% Tiết kiệm & Đầu tư:</strong> Quỹ dự phòng, chứng khoán, tích lũy.
+                    </p>
+
+                    <h5 style="color: #10B981; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">2. Phân Bổ Thặng Dư Ròng</h5>
+                    <p style="margin-bottom: 10px;">
+                        • Cuối mỗi tháng, nếu <strong>Thu Nhập > Chi Tiêu</strong>, trang Tổng Quan sẽ xuất hiện Thẻ Thặng Dư Ròng.<br>
+                        • Nhấn <strong>"Phân Bổ Vào Mục Tiêu Ngay"</strong> để chia số tiền dư đó vào các mục tiêu như <em>Quỹ dự phòng, Mua xe, Mua nhà...</em>
+                    </p>
+
+                    <h5 style="color: #F59E0B; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">3. Quản Lý Ví & Số Dư Đầu Kỳ</h5>
+                    <p style="margin-bottom: 10px;">
+                        • Vào tab <strong>Ví & Số Dư</strong> ➔ Bấm <strong>Quản Lý Ví & Đầu Kỳ</strong>.<br>
+                        • Tại đây bạn có thể <em>Thêm ví mới, Đổi tên ngân hàng, Nhập số dư đầu kỳ (kể cả 0đ) hoặc Xóa ví</em>.
+                    </p>
+
+                    <h5 style="color: #8B5CF6; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">4. Ghi Chép Giao Dịch (Sửa / Xóa)</h5>
+                    <p style="margin-bottom: 10px;">
+                        • Bấm nút <strong>+</strong> ở giữa để thêm giao dịch thu/chi mới.<br>
+                        • Trong tab <strong>Giao Dịch</strong>, mỗi dòng đều có nút <strong>Sửa</strong> và <strong>Xóa</strong> để điều chỉnh nếu có sai sót.
+                    </p>
+
+                    <h5 style="color: #06B6D4; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">5. Tra Cứu & Thống Kê Từ Khóa</h5>
+                    <p style="margin-bottom: 10px;">
+                        • Tại tab <strong>Giao Dịch</strong>, gõ tên nhà hàng, đối tác hoặc ghi chú vào ô Tìm Kiếm.<br>
+                        • App tự động lọc danh sách và <strong>tính tổng tiền thu/chi theo từ khóa đó</strong> lập tức.
+                    </p>
+
+                    <h5 style="color: #EC4899; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">6. Cài Đặt Màn Hình Chính (Add to Home Screen)</h5>
+                    <p style="margin-bottom: 10px;">
+                        • <strong>Trên iPhone (Safari):</strong> Bấm biểu tượng <em>Chia sẻ (Share)</em> ➔ Chọn <strong>Add to Home Screen (Thêm vào Màn hình chính)</strong>.<br>
+                        • <strong>Trên Android (Chrome):</strong> Bấm dấu 3 chấm ➔ Chọn <strong>Cài đặt ứng dụng (Thêm vào Màn hình chính)</strong>.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-block primary" id="btnCloseGuideBottom">Đã Hiểu</button>
+                </div>
             </div>
-          </div>
         </div>
 
-        <!-- Active Task Banner -->
-        <div id="active-task-banner" class="active-task-banner hidden">
-          <span class="active-task-icon">🎯</span>
-          <div class="active-task-info">
-            <span class="active-task-label">Đang tập trung cho:</span>
-            <span id="active-task-title" class="active-task-name">Chọn một công việc bên dưới</span>
-          </div>
+        <!-- MODAL: USER PROFILE, AVATAR & SECURITY PIN & BIOMETRIC SETTINGS -->
+        <div class="modal-overlay" id="modalProfile">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i data-lucide="shield-check" style="color: #3B82F6;"></i> Hồ Sơ Cá Nhân & Bảo Mật</h4>
+                    <button class="close-btn" id="closeProfileModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body" style="text-align: center;">
+                    <!-- Avatar Upload Picker Container -->
+                    <div class="avatar-upload-box" id="btnTriggerAvatarUpload">
+                        <div class="avatar-large" id="profileAvatarPreview">
+                            <i data-lucide="user"></i>
+                        </div>
+                        <div class="avatar-badge"><i data-lucide="camera"></i></div>
+                    </div>
+                    <input type="file" id="inputAvatarFile" accept="image/*" style="display: none;">
+                    <p style="font-size: 0.78rem; color: #94A3B8; margin-top: 6px;">Nhấn vào hình để chọn ảnh từ thư viện iPhone / Máy tính</p>
+
+                    <div class="form-group" style="text-align: left; margin-top: 16px;">
+                        <label>Tên hiển thị của bạn</label>
+                        <input type="text" id="inputUserName" class="custom-input" placeholder="Nhập tên của bạn...">
+                    </div>
+
+                    <div class="form-group" style="text-align: left;">
+                        <label>Email Khôi Phục Bảo Mật <span style="color: #EF4444;">*</span></label>
+                        <input type="email" id="inputRecoveryEmail" class="custom-input" placeholder="Ví dụ: thangvu@gmail.com" required>
+                        <span style="font-size: 0.72rem; color: #64748B;">Dùng để nhận mã OTP khôi phục PIN nếu lỡ quên</span>
+                    </div>
+
+                    <!-- SECURITY PIN & BIOMETRIC TOGGLES CONTAINER -->
+                    <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 14px; text-align: left; margin-top: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong style="font-size: 0.9rem; color: #F8FAFC;">🔒 Khóa PIN Bảo Mật</strong>
+                                <div style="font-size: 0.75rem; color: #94A3B8;">Tự động khóa sau 5 phút không tương tác</div>
+                            </div>
+                            <label class="switch-toggle">
+                                <input type="checkbox" id="togglePinLock">
+                                <span class="slider-round"></span>
+                            </label>
+                        </div>
+
+                        <div id="pinSetupContainer" style="display: none; margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(255, 255, 255, 0.1);">
+                            <div class="form-group" style="margin-bottom: 12px;">
+                                <label>Cài Đặt Mã PIN (4 chữ số)</label>
+                                <input type="password" id="inputPinCode" class="custom-input" placeholder="Ví dụ: 1234" maxlength="4" style="letter-spacing: 4px; font-weight: 700; text-align: center;">
+                            </div>
+
+                            <!-- BIOMETRIC FACE ID / TOUCH ID TOGGLE SWITCH -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px dashed rgba(255, 255, 255, 0.08);">
+                                <div>
+                                    <strong style="font-size: 0.85rem; color: #A78BFA; display: flex; align-items: center; gap: 4px;">
+                                        <i data-lucide="fingerprint" style="width: 16px; height: 16px;"></i> Mở Khóa Bằng Face ID / Vân Tay
+                                    </strong>
+                                    <div style="font-size: 0.72rem; color: #94A3B8;">Dùng sinh trắc học của iPhone / Android</div>
+                                </div>
+                                <label class="switch-toggle">
+                                    <input type="checkbox" id="toggleBiometricLock">
+                                    <span class="slider-round"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-block primary" id="btnSaveProfile">Lưu Cài Đặt Hồ Sơ & Bảo Mật</button>
+                </div>
+            </div>
         </div>
 
-        <!-- Control Buttons -->
-        <div class="timer-controls">
-          <button id="reset-btn" class="control-btn secondary" title="Đặt lại (R)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
-          </button>
-          
-          <button id="start-pause-btn" class="control-btn primary">
-            <span id="start-btn-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-            </span>
-            <span id="start-btn-text">Bắt đầu</span>
-          </button>
+        <!-- MODAL: ADD / EDIT TRANSACTION -->
+        <div class="modal-overlay" id="modalAddTx">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="modalTxTitle"><i data-lucide="plus-circle"></i> Thêm Giao Dịch Mới</h4>
+                    <button class="close-btn" id="closeAddTxModal"><i data-lucide="x"></i></button>
+                </div>
+                <form id="formAddTx" class="modal-body">
+                    <input type="hidden" id="editingTxId" value="">
 
-          <button id="skip-btn" class="control-btn secondary" title="Bỏ qua lượt này (S)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"></line></svg>
-          </button>
+                    <div class="form-group">
+                        <label>Loại giao dịch</label>
+                        <div class="segmented-control">
+                            <input type="radio" name="txType" value="expense" id="typeExpense" checked>
+                            <label for="typeExpense" class="segment expense">Chi Tiêu</label>
+                            <input type="radio" name="txType" value="income" id="typeIncome">
+                            <label for="typeIncome" class="segment income">Thu Nhập</label>
+                        </div>
+                    </div>
 
-          <button id="float-widget-btn" class="control-btn secondary" title="Hiện cửa sổ nổi luôn trên màn hình (Pin Widget)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="12" y="12" width="7" height="7" rx="1" ry="1"></rect></svg>
-          </button>
+                    <div class="form-group">
+                        <label>Số tiền (VNĐ)</label>
+                        <input type="number" id="txAmount" class="custom-input" placeholder="Ví dụ: 150000" required min="1" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Danh mục</label>
+                        <select id="txCategory" class="custom-select" required>
+                            <!-- Dynamically loaded -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Phân loại (Tự động theo 50/30/20)</label>
+                        <input type="text" id="txRuleGroup" class="custom-input disabled-input" readonly placeholder="Tự động nhảy nhóm...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tài khoản / Ví</label>
+                        <select id="txAccount" class="custom-select" required>
+                            <!-- Dynamically loaded -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ngày thực hiện</label>
+                        <input type="date" id="txDate" class="custom-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Diễn giải / Ghi chú</label>
+                        <input type="text" id="txNote" class="custom-input" placeholder="Ví dụ: Ăn trưa với bạn bè">
+                    </div>
+
+                    <button type="submit" id="btnSubmitTxForm" class="btn-block primary">Lưu Giao Dịch</button>
+                </form>
+            </div>
         </div>
-      </section>
 
-      <!-- Right Column: Sidebar (Tasks & Sound Mixer) -->
-      <aside class="sidebar-layout">
-        <!-- Ambient Sound Mixer Card -->
-        <section class="card sound-card">
-          <div class="card-header">
-            <h3>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
-              Âm Thanh Tập Trung (Ambient)
-            </h3>
-            <button id="master-sound-toggle" class="badge-btn">Tắt tất cả</button>
-          </div>
-
-          <div class="sound-sliders-grid">
-            <div class="sound-item" data-sound="rain">
-              <div class="sound-info">
-                <span class="sound-icon">🌧️</span>
-                <span class="sound-name">Mưa rơi</span>
-              </div>
-              <input type="range" class="sound-slider" min="0" max="100" value="0">
+        <!-- MODAL: INITIAL BALANCE & WALLETS (ADVANCED EDITING & ADDING) -->
+        <div class="modal-overlay" id="modalInitialBalance">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i data-lucide="edit"></i> Quản Lý Ví & Số Dư Đầu Kỳ</h4>
+                    <button class="close-btn" id="closeInitialModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div id="initialBalanceFormList">
+                        <!-- Loaded dynamically -->
+                    </div>
+                    <button type="button" class="btn-sm secondary" id="btnAddAccountInModal" style="width: 100%; margin-top: 10px; padding: 10px; justify-content: center;"><i data-lucide="plus"></i> Thêm Ví / Ngân Hàng Mới</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-block primary" id="btnSaveInitialBalances">Cập Nhật Ví & Số Dư</button>
+                </div>
             </div>
+        </div>
 
-            <div class="sound-item" data-sound="waves">
-              <div class="sound-info">
-                <span class="sound-icon">🌊</span>
-                <span class="sound-name">Sóng biển</span>
-              </div>
-              <input type="range" class="sound-slider" min="0" max="100" value="0">
+        <!-- MODAL: ADD / EDIT FINANCIAL GOAL -->
+        <div class="modal-overlay" id="modalGoal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="modalGoalTitle"><i data-lucide="target"></i> Tạo Mục Tiêu Tài Chính</h4>
+                    <button class="close-btn" id="closeGoalModal"><i data-lucide="x"></i></button>
+                </div>
+                <form id="formGoal" class="modal-body">
+                    <input type="hidden" id="editingGoalId" value="">
+
+                    <div class="form-group">
+                        <label>Tên mục tiêu</label>
+                        <input type="text" id="goalTitle" class="custom-input" placeholder="Ví dụ: Quỹ dự phòng khẩn cấp, Mua xe mới..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Số tiền mục tiêu cần đạt (VNĐ)</label>
+                        <input type="number" id="goalTarget" class="custom-input" placeholder="Ví dụ: 100000000" required min="100000" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Số tiền đã tích lũy hiện tại (VNĐ)</label>
+                        <input type="number" id="goalCurrent" class="custom-input" placeholder="Ví dụ: 10000000" required min="0" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Hạn hoàn thành (Tháng/Năm)</label>
+                        <input type="text" id="goalDeadline" class="custom-input" placeholder="Ví dụ: 12/2026" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ghi chú / Kế hoạch thực hiện</label>
+                        <input type="text" id="goalNote" class="custom-input" placeholder="Ví dụ: Gửi tiết kiệm online hàng tháng">
+                    </div>
+
+                    <button type="submit" id="btnSubmitGoalForm" class="btn-block primary">Lưu Mục Tiêu</button>
+                </form>
             </div>
+        </div>
 
-            <div class="sound-item" data-sound="forest">
-              <div class="sound-info">
-                <span class="sound-icon">🍃</span>
-                <span class="sound-name">Tiếng gió</span>
-              </div>
-              <input type="range" class="sound-slider" min="0" max="100" value="0">
+        <!-- MODAL: ALLOCATE SURPLUS TO GOALS -->
+        <div class="modal-overlay" id="modalAllocateSurplus">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i data-lucide="sparkles" style="color: #10B981;"></i> Phân Bổ Thặng Dư Vào Mục Tiêu</h4>
+                    <button class="close-btn" id="closeAllocateSurplusModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 14px; text-align: center; margin-bottom: 16px;">
+                        <div style="font-size: 0.8rem; color: #94A3B8;">Thặng Dư Ròng Kỳ Này:</div>
+                        <h3 id="allocSurplusTotal" style="color: #10B981; font-size: 1.3rem; margin-top: 2px;">0 ₫</h3>
+                        <div style="font-size: 0.78rem; color: #94A3B8; margin-top: 4px;">Còn lại chưa phân bổ: <strong id="allocSurplusRemaining" style="color: #F59E0B;">0 ₫</strong></div>
+                    </div>
+
+                    <div id="allocSurplusGoalList">
+                        <!-- Goal allocation inputs rendered dynamically -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-block primary" id="btnConfirmSurplusAllocation" style="background: linear-gradient(135deg, #10B981, #059669);">Xác Nhận Phân Bổ Vào Mục Tiêu</button>
+                </div>
             </div>
-
-            <div class="sound-item" data-sound="pinkNoise">
-              <div class="sound-info">
-                <span class="sound-icon">📻</span>
-                <span class="sound-name">Tiếng ồn hồng</span>
-              </div>
-              <input type="range" class="sound-slider" min="0" max="100" value="0">
-            </div>
-          </div>
-        </section>
-
-        <!-- Tasks Card -->
-        <section class="card tasks-card">
-          <div class="card-header">
-            <h3>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-              Danh Sách Công Việc
-            </h3>
-            <span id="tasks-counter" class="tasks-counter-badge">0/0</span>
-          </div>
-
-          <form id="add-task-form" class="add-task-form">
-            <input type="text" id="task-input" placeholder="+ Thêm mục tiêu tập trung..." required autocomplete="off">
-            <div class="task-form-options">
-              <div class="pomo-est-input">
-                <label for="pomo-est">Dự kiến:</label>
-                <input type="number" id="pomo-est" min="1" max="10" value="1"> 🍅
-              </div>
-              <button type="submit" class="add-task-btn">Thêm</button>
-            </div>
-          </form>
-
-          <ul id="tasks-list" class="tasks-list">
-            <!-- Rendered dynamically -->
-          </ul>
-        </section>
-      </aside>
-    </main>
-  </div>
-
-  <!-- Settings Modal -->
-  <div id="settings-modal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h2>Cài Đặt Đồng Hồ</h2>
-        <button id="close-settings-btn" class="close-btn">&times;</button>
-      </div>
-
-      <div class="modal-body">
-        <section class="settings-group">
-          <h3>Thời lượng (phút)</h3>
-          <div class="settings-grid">
-            <div class="setting-field">
-              <label for="work-time-input">Làm việc</label>
-              <input type="number" id="work-time-input" min="1" max="90" value="25">
-            </div>
-            <div class="setting-field">
-              <label for="short-break-input">Nghỉ ngắn</label>
-              <input type="number" id="short-break-input" min="1" max="30" value="5">
-            </div>
-            <div class="setting-field">
-              <label for="long-break-input">Nghỉ dài</label>
-              <input type="number" id="long-break-input" min="1" max="60" value="15">
-            </div>
-          </div>
-        </section>
-
-        <section class="settings-group">
-          <h3>Tự động hóa & Thông báo</h3>
-          <div class="setting-toggle-row">
-            <span>Tự động mở cửa sổ nổi (Widget) khi bắt đầu</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="auto-open-pip" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="setting-toggle-row">
-            <span>Tự động chạy giờ nghỉ</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="auto-start-breaks">
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="setting-toggle-row">
-            <span>Tự động chạy giờ làm tiếp theo</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="auto-start-pomos">
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="setting-toggle-row">
-            <span>Bật Thông Báo Desktop (Notification API)</span>
-            <button id="request-notification-btn" class="small-btn">Kích hoạt</button>
-          </div>
-        </section>
-
-        <section class="settings-group">
-          <h3>Âm báo hết giờ</h3>
-          <div class="setting-field">
-            <select id="alarm-sound-select">
-              <option value="chime">Chuông ngân (Soft Chime)</option>
-              <option value="digital">Digital Bell</option>
-              <option value="gong">Tiếng Gong thiền</option>
-            </select>
-          </div>
-        </section>
-      </div>
-
-      <div class="modal-footer">
-        <button id="save-settings-btn" class="control-btn primary">Lưu cài đặt</button>
-      </div>
+        </div>
     </div>
-  </div>
 
-  <!-- Stats Modal -->
-  <div id="stats-modal" class="modal-overlay hidden">
-    <div class="modal-card stats-modal-card">
-      <div class="modal-header">
-        <h2>Thống Kê Năng Suất</h2>
-        <button id="close-stats-btn" class="close-btn">&times;</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="stats-summary-grid">
-          <div class="stat-box">
-            <span class="stat-value" id="stat-total-pomos">0</span>
-            <span class="stat-label">Pomodoro thành công</span>
-          </div>
-          <div class="stat-box">
-            <span class="stat-value" id="stat-focus-time">0h 0m</span>
-            <span class="stat-label">Thời gian tập trung</span>
-          </div>
-          <div class="stat-box">
-            <span class="stat-value" id="stat-streak">0 ngày</span>
-            <span class="stat-label">Chuỗi tập trung (Streak)</span>
-          </div>
-        </div>
-
-        <div class="chart-container">
-          <h3>Tiến độ tập trung 7 ngày qua</h3>
-          <div id="bar-chart" class="bar-chart">
-            <!-- Rendered dynamically -->
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Hidden Canvas & Video for Picture-in-Picture Floating Window -->
-  <canvas id="pip-canvas" width="400" height="400" style="display:none;"></canvas>
-  <video id="pip-video" muted playsinline style="display:none;"></video>
-
-  <!-- Canvas for Confetti -->
-  <canvas id="confetti-canvas" class="confetti-canvas"></canvas>
-
-  <script src="audio.js"></script>
-  <script src="app.js"></script>
+    <!-- Application Script -->
+    <script src="app.js"></script>
 </body>
 </html>
