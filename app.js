@@ -1,4 +1,4 @@
-// === PERSONAL FINANCE APP V4 JS LOGIC (WITH 5-MIN AUTO-LOCK & FACE ID / TOUCH ID BIOMETRIC AUTH) ===
+// === PERSONAL FINANCE APP V4 JS LOGIC (WITH STRICT FACE ID / TOUCH ID VERIFICATION FIX) ===
 
 // --- DEFAULT INITIAL STATE (CLEAN & READY FOR REAL TRANSACTIONS) ---
 const DEFAULT_STATE = {
@@ -190,11 +190,6 @@ function initPinLockSystem() {
                 biometricContainer.style.display = state.userProfile.biometricEnabled ? 'block' : 'none';
             }
             safeCreateIcons();
-
-            // Auto-trigger biometric if enabled
-            if (state.userProfile.biometricEnabled) {
-                setTimeout(triggerBiometricUnlock, 300);
-            }
         }
     }
 
@@ -325,7 +320,7 @@ function initPinLockSystem() {
     }
 }
 
-// WEBAUTHN / BIOMETRIC FACE ID & FINGERPRINT AUTHENTICATION LOGIC
+// WEBAUTHN / BIOMETRIC FACE ID & FINGERPRINT STRICT AUTHENTICATION LOGIC
 async function triggerBiometricUnlock() {
     const modalPin = document.getElementById('modalPinLock');
 
@@ -333,21 +328,20 @@ async function triggerBiometricUnlock() {
         if (window.PublicKeyCredential && typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
             const isAvailable = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
             if (isAvailable) {
-                // Execute WebAuthn Platform Biometric Challenge
                 const dummyChallenge = new Uint8Array(32);
                 window.crypto.getRandomValues(dummyChallenge);
 
-                // Open Native Face ID / Touch ID / Fingerprint prompt
+                // Call WebAuthn System Authentication (Prompts Face ID / Touch ID)
                 const credential = await navigator.credentials.get({
                     publicKey: {
                         challenge: dummyChallenge,
                         timeout: 60000,
                         userVerification: 'required'
                     }
-                }).catch(() => null);
+                });
 
-                if (credential || isAvailable) {
-                    // Biometric verification successful!
+                // STRICT VERIFICATION: REQUIRE ACTUAL RETURNED CREDENTIAL FROM OS
+                if (credential && credential.id) {
                     sessionStorage.setItem('app_unlocked_session', 'true');
                     lastUserActivityTime = Date.now();
                     if (modalPin) modalPin.style.display = 'none';
@@ -358,17 +352,11 @@ async function triggerBiometricUnlock() {
             }
         }
     } catch(e) {
-        console.log("WebAuthn note:", e);
+        console.log("Biometric verification cancelled or failed:", e);
     }
 
-    // Direct Biometric Fallback Prompt
-    if (confirm('👤 Cảm biến Face ID / Vân tay thiết bị:\n\nXác nhận vân tay / khuôn mặt chính chủ để mở khóa ứng dụng ngay lập tức?')) {
-        sessionStorage.setItem('app_unlocked_session', 'true');
-        lastUserActivityTime = Date.now();
-        if (modalPin) modalPin.style.display = 'none';
-        enteredPinDigits = '';
-        updatePinDotsUI();
-    }
+    // IF FACE ID WAS CANCELLED, FAILED, OR NOT SHOWN: DO NOT UNLOCK & SHOW STRICT ALERT!
+    alert('❌ Xác thực Face ID / Vân tay không thành công. Vui lòng nhập mã PIN 4 chữ số!');
 }
 
 function updatePinDotsUI() {
