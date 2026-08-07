@@ -1,4 +1,4 @@
-// === PERSONAL FINANCE APP V5 JS LOGIC (WITH AUTOMATIC PROFILE & USER GUIDE ONBOARDING CHAIN) ===
+// === PERSONAL FINANCE APP V4/V5 JS LOGIC (CLEAN SAPPHIRE THEME & ALL CORE FEATURES PRESERVED 100%) ===
 
 // --- DEFAULT INITIAL STATE ---
 const DEFAULT_STATE = {
@@ -11,8 +11,7 @@ const DEFAULT_STATE = {
         biometricEnabled: false, // WebAuthn Face ID / Touch ID / Fingerprint
         biometricCredentialId: null, // Registered Passkey ID
         biometricRawId: null, // Registered Passkey Raw ID array
-        hasCompletedOnboarding: false, // Flag for first-time welcome setup
-        theme: 'sapphire' // Theme option: sapphire, gold, emerald, cyber, rosegold
+        hasCompletedOnboarding: false // Flag for first-time welcome setup
     },
     accounts: [
         { id: 'acc-1', name: 'Tài khoản VCB', type: 'Tài khoản thanh toán', initialBalance: 0, note: 'Tài khoản nhận lương chính' },
@@ -56,11 +55,10 @@ function loadState() {
         const saved = localStorage.getItem('personal_finance_app_v4');
         if (saved) {
             const parsed = JSON.parse(saved);
-            if (!parsed.userProfile) parsed.userProfile = { name: 'Tài Chính Cá Nhân', avatar: '', pinEnabled: false, pinCode: '', recoveryEmail: '', biometricEnabled: false, hasCompletedOnboarding: false, theme: 'sapphire' };
+            if (!parsed.userProfile) parsed.userProfile = { name: 'Tài Chính Cá Nhân', avatar: '', pinEnabled: false, pinCode: '', recoveryEmail: '', biometricEnabled: false, hasCompletedOnboarding: false };
             if (parsed.userProfile.pinEnabled === undefined) parsed.userProfile.pinEnabled = false;
             if (parsed.userProfile.biometricEnabled === undefined) parsed.userProfile.biometricEnabled = false;
             if (parsed.userProfile.hasCompletedOnboarding === undefined) parsed.userProfile.hasCompletedOnboarding = false;
-            if (!parsed.userProfile.theme) parsed.userProfile.theme = 'sapphire';
             if (!parsed.userProfile.pinCode) parsed.userProfile.pinCode = '';
             if (!parsed.userProfile.recoveryEmail) parsed.userProfile.recoveryEmail = '';
             if (!parsed.goals) parsed.goals = [];
@@ -110,42 +108,9 @@ function safeCreateIcons() {
     }
 }
 
-// --- APPLY THEME ENGINE ---
-function applyTheme(themeName) {
-    const validThemes = ['sapphire', 'gold', 'emerald', 'cyber', 'rosegold'];
-    const selectedTheme = validThemes.includes(themeName) ? themeName : 'sapphire';
-
-    document.body.setAttribute('data-theme', selectedTheme);
-
-    const metaTheme = document.querySelector('meta[name="theme-color"]');
-    if (metaTheme) {
-        const themeColors = {
-            sapphire: '#090D16',
-            gold: '#0D0A05',
-            emerald: '#04100C',
-            cyber: '#0F0720',
-            rosegold: '#14090E'
-        };
-        metaTheme.setAttribute('content', themeColors[selectedTheme] || '#090D16');
-    }
-
-    document.querySelectorAll('.theme-badge-item').forEach(item => {
-        if (item.getAttribute('data-theme-id') === selectedTheme) {
-            item.classList.add('active');
-        } else {
-            item.classList.remove('active');
-        }
-    });
-
-    if (state.userProfile) {
-        state.userProfile.theme = selectedTheme;
-    }
-}
-
 // === DOM LOADED ===
 document.addEventListener('DOMContentLoaded', () => {
     try {
-        applyTheme(state.userProfile?.theme || 'sapphire');
         initPinLockSystem();
         initAutoLockInactivityTimer();
         initNavigation();
@@ -160,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(() => { try { applyTheme(state.userProfile?.theme || 'sapphire'); renderApp(); checkFirstTimeOnboarding(); } catch(e) {} }, 100);
+    setTimeout(() => { try { renderApp(); checkFirstTimeOnboarding(); } catch(e) {} }, 100);
 }
 
 // AUTOMATIC FIRST-TIME USER PROFILE POPUP
@@ -562,7 +527,6 @@ function initSearchListeners() {
 
 // --- MAIN RENDER FUNCTION ---
 function renderApp() {
-    applyTheme(state.userProfile?.theme || 'sapphire');
     renderUserProfile();
     renderDashboard();
     renderTransactions();
@@ -672,23 +636,14 @@ function renderChart(year) {
 
     if (chartInstance) chartInstance.destroy();
 
-    const themeColors = {
-        sapphire: { inc: '#10B981', exp: '#EF4444' },
-        gold: { inc: '#10B981', exp: '#EF4444' },
-        emerald: { inc: '#34D399', exp: '#F87171' },
-        cyber: { inc: '#06B6D4', exp: '#F43F5E' },
-        rosegold: { inc: '#10B981', exp: '#FB7185' }
-    };
-    const currentColors = themeColors[state.userProfile?.theme] || themeColors.sapphire;
-
     try {
         chartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
                 datasets: [
-                    { label: 'Thu Nhập', data: monthlyIncome, backgroundColor: currentColors.inc, borderRadius: 6 },
-                    { label: 'Chi Tiêu', data: monthlyExpense, backgroundColor: currentColors.exp, borderRadius: 6 }
+                    { label: 'Thu Nhập', data: monthlyIncome, backgroundColor: '#10B981', borderRadius: 6 },
+                    { label: 'Chi Tiêu', data: monthlyExpense, backgroundColor: '#EF4444', borderRadius: 6 }
                 ]
             },
             options: {
@@ -998,7 +953,7 @@ function initModals() {
         if (btn) btn.addEventListener('click', () => modalUserGuide.classList.remove('active'));
     });
 
-    // PROFILE, AVATAR, PIN, BIOMETRICS & THEME SWITCHER MODAL
+    // PROFILE, AVATAR, PIN & BIOMETRICS MODAL
     const modalProfile = document.getElementById('modalProfile');
     const btnOpenProfileModal = document.getElementById('btnOpenProfileModal');
     const closeProfileModal = document.getElementById('closeProfileModal');
@@ -1022,8 +977,6 @@ function initModals() {
             if (pinSetupContainer) pinSetupContainer.style.display = state.userProfile.pinEnabled ? 'block' : 'none';
             if (inputPinCode) inputPinCode.value = state.userProfile.pinCode || '';
 
-            applyTheme(state.userProfile.theme || 'sapphire');
-
             tempAvatarBase64 = state.userProfile.avatar || '';
             if (profileAvatarPreview) {
                 if (tempAvatarBase64) {
@@ -1036,14 +989,6 @@ function initModals() {
             safeCreateIcons();
         });
     }
-
-    document.querySelectorAll('.theme-badge-item[data-theme-id]').forEach(item => {
-        item.addEventListener('click', () => {
-            const themeId = item.getAttribute('data-theme-id');
-            applyTheme(themeId);
-            saveState();
-        });
-    });
 
     if (togglePinLock && pinSetupContainer) {
         togglePinLock.addEventListener('change', () => {

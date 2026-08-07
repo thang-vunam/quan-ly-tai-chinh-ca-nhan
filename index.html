@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Quản Lý Tài Chính Cá Nhân V4 - 50/30/20 & PIN & Biometrics & Multi-Theme</title>
+    <title>Quản Lý Tài Chính Cá Nhân V4 - 50/30/20 & PIN & Biometrics</title>
 
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Ứng dụng quản lý tài chính cá nhân chuẩn 50/30/20, phân bổ thặng dư ròng, tra cứu từ khóa thông minh, bảo mật PIN / Face ID / Touch ID và bộ chọn giao diện phong thủy tài chính.">
+    <meta name="description" content="Ứng dụng quản lý tài chính cá nhân chuẩn 50/30/20, phân bổ thặng dư ròng, tra cứu từ khóa thông minh và bảo mật PIN / Face ID / Touch ID.">
     <meta name="theme-color" content="#090D16">
 
     <!-- PWA & Apple Web App Icons -->
@@ -28,7 +28,7 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Universal Mobile Header Bar -->
+        <!-- Universal Mobile Header Bar (With safe-area top padding to prevent system clock overlap) -->
         <header class="top-bar">
             <div class="user-profile" id="btnOpenProfileModal">
                 <div class="avatar" id="headerAvatarContainer">
@@ -111,14 +111,14 @@
                     </div>
                 </div>
 
-                <!-- SMART SURPLUS ALLOCATION PROMPT CARD (Visible when Net Surplus > 0) -->
-                <div id="surplusAllocationCard" class="section-card" style="display: none; background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(59, 130, 246, 0.18)); border: 1px solid rgba(16, 185, 129, 0.4);">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <span class="badge" style="background: rgba(16, 185, 129, 0.25); color: #10B981; font-weight: 700;">🎉 Thặng Dư Ròng Kỳ Này</span>
-                            <h3 style="font-size: 1.1rem; color: #10B981; margin-top: 4px;" id="cardSurplusValue">0 ₫</h3>
+                <!-- SMART SURPLUS ALLOCATION PROMPT CARD (CLEAN SINGLE LINE LAYOUT, REMOVED ICONS) -->
+                <div id="surplusAllocationCard" class="section-card" style="display: none; background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(59, 130, 246, 0.18)); border: 1px solid rgba(16, 185, 129, 0.4); padding: 14px 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: nowrap;">
+                        <div style="flex: 1; min-width: 0;">
+                            <span class="badge" style="background: rgba(16, 185, 129, 0.25); color: #10B981; font-weight: 700; white-space: nowrap; font-size: 0.78rem; display: inline-block;">Thặng Dư Ròng Kỳ Này</span>
+                            <h3 style="font-size: 1.05rem; color: #10B981; margin-top: 2px; white-space: nowrap; font-family: 'Outfit', sans-serif;" id="cardSurplusValue">0 ₫</h3>
                         </div>
-                        <button class="btn-sm primary" id="btnOpenAllocateSurplusModal" style="background: linear-gradient(135deg, #10B981, #059669);"><i data-lucide="sparkles"></i> Phân Bổ Vào Mục Tiêu Ngay</button>
+                        <button class="btn-sm primary" id="btnOpenAllocateSurplusModal" style="background: linear-gradient(135deg, #10B981, #059669); white-space: nowrap; font-size: 0.78rem; padding: 8px 12px; flex-shrink: 0;">Phân Bổ Vào Mục Tiêu Ngay</button>
                     </div>
                 </div>
 
@@ -435,7 +435,7 @@
             </div>
         </div>
 
-        <!-- MODAL: USER PROFILE, AVATAR, PIN, BIOMETRICS & THEME SWITCHER SETTINGS -->
+        <!-- MODAL: USER PROFILE, AVATAR, PIN & BIOMETRICS SETTINGS -->
         <div class="modal-overlay" id="modalProfile">
             <div class="modal-content">
                 <div class="modal-header">
@@ -452,35 +452,6 @@
                     </div>
                     <input type="file" id="inputAvatarFile" accept="image/*" style="display: none;">
                     <p style="font-size: 0.78rem; color: #94A3B8; margin-top: 6px;">Nhấn vào hình để chọn ảnh từ thư viện iPhone / Máy tính</p>
-
-                    <!-- MULTI-THEME PHONG THỦY COLOR SELECTOR -->
-                    <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 12px; text-align: left; margin-top: 14px;">
-                        <label style="font-size: 0.85rem; font-weight: 700; color: #F8FAFC; display: flex; align-items: center; gap: 6px;">
-                            <i data-lucide="palette" style="width: 16px; height: 16px; color: #F59E0B;"></i> 🎨 Chủ Đề Giao Diện Phong Thủy
-                        </label>
-                        <div class="theme-selector-grid" id="themeSelectorGrid">
-                            <div class="theme-badge-item active" data-theme-id="sapphire" title="Sapphire Night">
-                                <div class="theme-color-circle sapphire"></div>
-                                <span class="theme-name-label">Sapphire</span>
-                            </div>
-                            <div class="theme-badge-item" data-theme-id="gold" title="Dark Gold Hoàng Kim">
-                                <div class="theme-color-circle gold"></div>
-                                <span class="theme-name-label">Hoàng Kim</span>
-                            </div>
-                            <div class="theme-badge-item" data-theme-id="emerald" title="Emerald Green Lục Bảo">
-                                <div class="theme-color-circle emerald"></div>
-                                <span class="theme-name-label">Lục Bảo</span>
-                            </div>
-                            <div class="theme-badge-item" data-theme-id="cyber" title="Neon Cyber">
-                                <div class="theme-color-circle cyber"></div>
-                                <span class="theme-name-label">Cyber</span>
-                            </div>
-                            <div class="theme-badge-item" data-theme-id="rosegold" title="Rose Gold Hồng Kim">
-                                <div class="theme-color-circle rosegold"></div>
-                                <span class="theme-name-label">Hồng Kim</span>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="form-group" style="text-align: left; margin-top: 14px;">
                         <label>Tên hiển thị của bạn</label>

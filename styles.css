@@ -1,9 +1,9 @@
 /* ==========================================================================
-   PERSONAL FINANCE APP V4/V5 DESIGN SYSTEM - WITH MULTI-THEME ENGINE
+   PERSONAL FINANCE APP V4/V5 DESIGN SYSTEM - SAPPHIRE DEFAULT THEME
    ========================================================================== */
 
-/* --- MULTI-THEME DESIGN TOKENS --- */
-:root, body[data-theme="sapphire"] {
+/* --- DESIGN TOKENS --- */
+:root {
     --bg-primary: #090D16;
     --bg-card: rgba(18, 26, 43, 0.75);
     --bg-card-solid: #121A2B;
@@ -18,74 +18,6 @@
     --text-heading: #F8FAFC;
     --text-body: #CBD5E1;
     --text-muted: #94A3B8;
-}
-
-body[data-theme="gold"] {
-    --bg-primary: #0D0A05;
-    --bg-card: rgba(30, 24, 12, 0.78);
-    --bg-card-solid: #1E180C;
-    --border-card: rgba(245, 158, 11, 0.25);
-    --accent-blue: #F59E0B;
-    --accent-blue-gradient: linear-gradient(135deg, #F59E0B, #B45309);
-    --accent-green: #10B981;
-    --accent-green-gradient: linear-gradient(135deg, #10B981, #047857);
-    --accent-red: #EF4444;
-    --accent-amber: #FBBF24;
-    --accent-purple: #D97706;
-    --text-heading: #FEF3C7;
-    --text-body: #FDE68A;
-    --text-muted: #F59E0B;
-}
-
-body[data-theme="emerald"] {
-    --bg-primary: #04100C;
-    --bg-card: rgba(10, 32, 24, 0.78);
-    --bg-card-solid: #0A2018;
-    --border-card: rgba(16, 185, 129, 0.25);
-    --accent-blue: #10B981;
-    --accent-blue-gradient: linear-gradient(135deg, #10B981, #047857);
-    --accent-green: #34D399;
-    --accent-green-gradient: linear-gradient(135deg, #34D399, #059669);
-    --accent-red: #F87171;
-    --accent-amber: #F59E0B;
-    --accent-purple: #059669;
-    --text-heading: #ECFDF5;
-    --text-body: #A7F3D0;
-    --text-muted: #34D399;
-}
-
-body[data-theme="cyber"] {
-    --bg-primary: #0F0720;
-    --bg-card: rgba(32, 14, 60, 0.78);
-    --bg-card-solid: #200E3C;
-    --border-card: rgba(168, 85, 247, 0.3);
-    --accent-blue: #06B6D4;
-    --accent-blue-gradient: linear-gradient(135deg, #06B6D4, #0891B2);
-    --accent-green: #10B981;
-    --accent-green-gradient: linear-gradient(135deg, #10B981, #059669);
-    --accent-red: #F43F5E;
-    --accent-amber: #F59E0B;
-    --accent-purple: #A855F7;
-    --text-heading: #F3E8FF;
-    --text-body: #E9D5FF;
-    --text-muted: #C084FC;
-}
-
-body[data-theme="rosegold"] {
-    --bg-primary: #14090E;
-    --bg-card: rgba(40, 18, 28, 0.78);
-    --bg-card-solid: #28121C;
-    --border-card: rgba(244, 63, 94, 0.25);
-    --accent-blue: #FB7185;
-    --accent-blue-gradient: linear-gradient(135deg, #FB7185, #E11D48);
-    --accent-green: #10B981;
-    --accent-green-gradient: linear-gradient(135deg, #10B981, #047857);
-    --accent-red: #F43F5E;
-    --accent-amber: #F59E0B;
-    --accent-purple: #BE123C;
-    --text-heading: #FFE4E6;
-    --text-body: #FECDD3;
-    --text-muted: #FDA4AF;
 }
 
 /* Base Styles & Typography */
@@ -106,7 +38,6 @@ body {
     align-items: flex-start;
     overflow-x: hidden;
     padding-bottom: 90px;
-    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .app-container {
@@ -119,12 +50,12 @@ body {
     flex-direction: column;
 }
 
-/* Header Top Bar */
+/* Header Top Bar - FIX OVERLAP WITH MOBILE SYSTEM STATUS BAR CLOCK */
 .top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
+    padding: max(22px, calc(16px + env(safe-area-inset-top))) 16px 12px 16px;
     background: var(--bg-card);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -137,13 +68,13 @@ body {
 .user-profile {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     cursor: pointer;
 }
 
 .avatar {
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: var(--accent-blue-gradient);
     display: flex;
@@ -153,6 +84,7 @@ body {
     font-weight: 700;
     overflow: hidden;
     border: 2px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
 }
 
 .avatar img {
@@ -162,25 +94,27 @@ body {
 }
 
 .greeting {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: var(--text-muted);
     display: block;
+    line-height: 1.2;
 }
 
 .user-name {
-    font-size: 0.98rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: var(--text-heading);
+    line-height: 1.2;
 }
 
 .top-actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
 }
 
 .icon-btn {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     border-radius: 12px;
     border: 1px solid var(--border-card);
     background: rgba(255, 255, 255, 0.05);
@@ -287,6 +221,7 @@ body {
     justify-content: center;
     align-items: center;
     font-size: 1.1rem;
+    flex-shrink: 0;
 }
 
 .kpi-card.income .kpi-icon { background: rgba(16, 185, 129, 0.15); color: #10B981; }
@@ -416,6 +351,7 @@ body {
     justify-content: center;
     align-items: center;
     font-size: 1rem;
+    flex-shrink: 0;
 }
 
 .tx-icon-box.income { background: rgba(16, 185, 129, 0.15); color: #10B981; }
@@ -930,48 +866,4 @@ input:checked + .slider-round:before { transform: translateX(20px); }
 /* OVERLAY LAYER Z-INDEX FIX FOR QUÊN PIN MODAL */
 #modalForgotPin {
     z-index: 10000 !important;
-}
-
-/* Theme Switcher Badge Selector */
-.theme-selector-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-    margin-top: 8px;
-}
-
-.theme-badge-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 12px;
-    border: 2px solid transparent;
-    transition: all 0.2s ease;
-}
-
-.theme-badge-item.active {
-    border-color: var(--text-heading);
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.theme-color-circle {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.theme-color-circle.sapphire { background: linear-gradient(135deg, #090D16, #3B82F6); }
-.theme-color-circle.gold { background: linear-gradient(135deg, #0D0A05, #F59E0B); }
-.theme-color-circle.emerald { background: linear-gradient(135deg, #04100C, #10B981); }
-.theme-color-circle.cyber { background: linear-gradient(135deg, #0F0720, #A855F7); }
-.theme-color-circle.rosegold { background: linear-gradient(135deg, #14090E, #FB7185); }
-
-.theme-name-label {
-    font-size: 0.65rem;
-    font-weight: 600;
-    color: var(--text-muted);
 }
