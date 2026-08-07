@@ -1,4 +1,4 @@
-// === PERSONAL FINANCE APP V4 JS LOGIC (WITH AUTOMATIC FIRST-TIME USER ONBOARDING PROFILE POPUP) ===
+// === PERSONAL FINANCE APP V5 JS LOGIC (WITH AUTOMATIC PROFILE & USER GUIDE ONBOARDING CHAIN) ===
 
 // --- DEFAULT INITIAL STATE ---
 const DEFAULT_STATE = {
@@ -11,7 +11,8 @@ const DEFAULT_STATE = {
         biometricEnabled: false, // WebAuthn Face ID / Touch ID / Fingerprint
         biometricCredentialId: null, // Registered Passkey ID
         biometricRawId: null, // Registered Passkey Raw ID array
-        hasCompletedOnboarding: false // Flag for first-time welcome setup
+        hasCompletedOnboarding: false, // Flag for first-time welcome setup
+        theme: 'sapphire' // Theme option: sapphire, gold, emerald, cyber, rosegold
     },
     accounts: [
         { id: 'acc-1', name: 'Tài khoản VCB', type: 'Tài khoản thanh toán', initialBalance: 0, note: 'Tài khoản nhận lương chính' },
@@ -55,10 +56,11 @@ function loadState() {
         const saved = localStorage.getItem('personal_finance_app_v4');
         if (saved) {
             const parsed = JSON.parse(saved);
-            if (!parsed.userProfile) parsed.userProfile = { name: 'Tài Chính Cá Nhân', avatar: '', pinEnabled: false, pinCode: '', recoveryEmail: '', biometricEnabled: false, hasCompletedOnboarding: false };
+            if (!parsed.userProfile) parsed.userProfile = { name: 'Tài Chính Cá Nhân', avatar: '', pinEnabled: false, pinCode: '', recoveryEmail: '', biometricEnabled: false, hasCompletedOnboarding: false, theme: 'sapphire' };
             if (parsed.userProfile.pinEnabled === undefined) parsed.userProfile.pinEnabled = false;
             if (parsed.userProfile.biometricEnabled === undefined) parsed.userProfile.biometricEnabled = false;
             if (parsed.userProfile.hasCompletedOnboarding === undefined) parsed.userProfile.hasCompletedOnboarding = false;
+            if (!parsed.userProfile.theme) parsed.userProfile.theme = 'sapphire';
             if (!parsed.userProfile.pinCode) parsed.userProfile.pinCode = '';
             if (!parsed.userProfile.recoveryEmail) parsed.userProfile.recoveryEmail = '';
             if (!parsed.goals) parsed.goals = [];
@@ -108,9 +110,42 @@ function safeCreateIcons() {
     }
 }
 
+// --- APPLY THEME ENGINE ---
+function applyTheme(themeName) {
+    const validThemes = ['sapphire', 'gold', 'emerald', 'cyber', 'rosegold'];
+    const selectedTheme = validThemes.includes(themeName) ? themeName : 'sapphire';
+
+    document.body.setAttribute('data-theme', selectedTheme);
+
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) {
+        const themeColors = {
+            sapphire: '#090D16',
+            gold: '#0D0A05',
+            emerald: '#04100C',
+            cyber: '#0F0720',
+            rosegold: '#14090E'
+        };
+        metaTheme.setAttribute('content', themeColors[selectedTheme] || '#090D16');
+    }
+
+    document.querySelectorAll('.theme-badge-item').forEach(item => {
+        if (item.getAttribute('data-theme-id') === selectedTheme) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+
+    if (state.userProfile) {
+        state.userProfile.theme = selectedTheme;
+    }
+}
+
 // === DOM LOADED ===
 document.addEventListener('DOMContentLoaded', () => {
     try {
+        applyTheme(state.userProfile?.theme || 'sapphire');
         initPinLockSystem();
         initAutoLockInactivityTimer();
         initNavigation();
@@ -125,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(() => { try { renderApp(); checkFirstTimeOnboarding(); } catch(e) {} }, 100);
+    setTimeout(() => { try { applyTheme(state.userProfile?.theme || 'sapphire'); renderApp(); checkFirstTimeOnboarding(); } catch(e) {} }, 100);
 }
 
 // AUTOMATIC FIRST-TIME USER PROFILE POPUP
@@ -205,7 +240,6 @@ function initPinLockSystem() {
     const pinAvatar = document.getElementById('pinUserAvatarPreview');
     const biometricContainer = document.getElementById('biometricUnlockContainer');
 
-    // Check if PIN lock is enabled and session not unlocked yet
     if (state.userProfile && state.userProfile.pinEnabled && state.userProfile.pinCode) {
         const isUnlocked = sessionStorage.getItem('app_unlocked_session') === 'true';
         if (!isUnlocked && modalPin) {
@@ -225,7 +259,6 @@ function initPinLockSystem() {
         }
     }
 
-    // Keypad Click Listeners
     enteredPinDigits = '';
     updatePinDotsUI();
 
@@ -255,7 +288,6 @@ function initPinLockSystem() {
         });
     }
 
-    // BIOMETRIC UNLOCK BUTTON LISTENER
     const btnBiometric = document.getElementById('btnBiometricUnlock');
     if (btnBiometric) {
         btnBiometric.addEventListener('click', (e) => {
@@ -264,7 +296,6 @@ function initPinLockSystem() {
         });
     }
 
-    // FORGOT PIN TRIGGER
     const btnForgot = document.getElementById('btnForgotPinTrigger');
     const modalForgot = document.getElementById('modalForgotPin');
     const closeForgot = document.getElementById('closeForgotPinModal');
@@ -290,7 +321,6 @@ function initPinLockSystem() {
         });
     }
 
-    // Send OTP via Email Handler
     const btnSendOtp = document.getElementById('btnSendOtpEmail');
     if (btnSendOtp) {
         btnSendOtp.addEventListener('click', async () => {
@@ -318,7 +348,6 @@ function initPinLockSystem() {
         });
     }
 
-    // Verify OTP & Reset PIN Handler
     const btnVerifyOtp = document.getElementById('btnVerifyOtpAndResetPin');
     if (btnVerifyOtp) {
         btnVerifyOtp.addEventListener('click', () => {
@@ -349,7 +378,7 @@ function initPinLockSystem() {
     }
 }
 
-// REGISTER WEBAUTHN PASSKEY FOR DOMAIN (CALL WHEN USER ENABLES TOGGLE IN PROFILE)
+// REGISTER WEBAUTHN PASSKEY FOR DOMAIN
 async function registerBiometricPasskey() {
     if (!window.PublicKeyCredential) {
         alert('⚠️ Trình duyệt / Thiết bị của bạn chưa hỗ trợ tính năng Passkey Sinh trắc học.');
@@ -362,7 +391,6 @@ async function registerBiometricPasskey() {
         const userId = new Uint8Array(16);
         window.crypto.getRandomValues(userId);
 
-        // Create WebAuthn Passkey for current domain
         const credential = await navigator.credentials.create({
             publicKey: {
                 challenge: dummyChallenge,
@@ -423,7 +451,6 @@ async function triggerBiometricUnlock() {
                 });
             }
 
-            // GET WEBAUTHN PASSKEY USING REGISTERED ID - THIS PROMPTS APPLE NATIVE FACE ID POPUP
             const credential = await navigator.credentials.get({
                 publicKey: {
                     challenge: dummyChallenge,
@@ -535,6 +562,7 @@ function initSearchListeners() {
 
 // --- MAIN RENDER FUNCTION ---
 function renderApp() {
+    applyTheme(state.userProfile?.theme || 'sapphire');
     renderUserProfile();
     renderDashboard();
     renderTransactions();
@@ -644,14 +672,23 @@ function renderChart(year) {
 
     if (chartInstance) chartInstance.destroy();
 
+    const themeColors = {
+        sapphire: { inc: '#10B981', exp: '#EF4444' },
+        gold: { inc: '#10B981', exp: '#EF4444' },
+        emerald: { inc: '#34D399', exp: '#F87171' },
+        cyber: { inc: '#06B6D4', exp: '#F43F5E' },
+        rosegold: { inc: '#10B981', exp: '#FB7185' }
+    };
+    const currentColors = themeColors[state.userProfile?.theme] || themeColors.sapphire;
+
     try {
         chartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
                 datasets: [
-                    { label: 'Thu Nhập', data: monthlyIncome, backgroundColor: '#10B981', borderRadius: 6 },
-                    { label: 'Chi Tiêu', data: monthlyExpense, backgroundColor: '#EF4444', borderRadius: 6 }
+                    { label: 'Thu Nhập', data: monthlyIncome, backgroundColor: currentColors.inc, borderRadius: 6 },
+                    { label: 'Chi Tiêu', data: monthlyExpense, backgroundColor: currentColors.exp, borderRadius: 6 }
                 ]
             },
             options: {
@@ -945,7 +982,6 @@ function openEditGoalModal(goalId) {
 
 // === MODALS & FORM HANDLING ===
 function initModals() {
-    // HDSD USER GUIDE MODAL
     const modalUserGuide = document.getElementById('modalUserGuide');
     const btnOpenGuideModal = document.getElementById('btnOpenGuideModal');
     const closeGuideModal = document.getElementById('closeGuideModal');
@@ -962,7 +998,7 @@ function initModals() {
         if (btn) btn.addEventListener('click', () => modalUserGuide.classList.remove('active'));
     });
 
-    // PROFILE, AVATAR, PIN & BIOMETRICS SETTINGS MODAL
+    // PROFILE, AVATAR, PIN, BIOMETRICS & THEME SWITCHER MODAL
     const modalProfile = document.getElementById('modalProfile');
     const btnOpenProfileModal = document.getElementById('btnOpenProfileModal');
     const closeProfileModal = document.getElementById('closeProfileModal');
@@ -986,6 +1022,8 @@ function initModals() {
             if (pinSetupContainer) pinSetupContainer.style.display = state.userProfile.pinEnabled ? 'block' : 'none';
             if (inputPinCode) inputPinCode.value = state.userProfile.pinCode || '';
 
+            applyTheme(state.userProfile.theme || 'sapphire');
+
             tempAvatarBase64 = state.userProfile.avatar || '';
             if (profileAvatarPreview) {
                 if (tempAvatarBase64) {
@@ -998,6 +1036,14 @@ function initModals() {
             safeCreateIcons();
         });
     }
+
+    document.querySelectorAll('.theme-badge-item[data-theme-id]').forEach(item => {
+        item.addEventListener('click', () => {
+            const themeId = item.getAttribute('data-theme-id');
+            applyTheme(themeId);
+            saveState();
+        });
+    });
 
     if (togglePinLock && pinSetupContainer) {
         togglePinLock.addEventListener('change', () => {
@@ -1021,12 +1067,23 @@ function initModals() {
         });
     }
 
+    // HELPER TO FINISH PROFILE SETUP & AUTOMATICALLY CHAIN OPEN USER GUIDE (HDSD) FOR FIRST-TIME USERS
+    const handleProfileOnboardingCompletion = () => {
+        const isFirstTime = !state.userProfile.hasCompletedOnboarding;
+        state.userProfile.hasCompletedOnboarding = true;
+        saveState();
+        if (modalProfile) modalProfile.classList.remove('active');
+
+        if (isFirstTime && modalUserGuide) {
+            setTimeout(() => {
+                modalUserGuide.classList.add('active');
+                safeCreateIcons();
+            }, 300);
+        }
+    };
+
     if (closeProfileModal) {
-        closeProfileModal.addEventListener('click', () => {
-            state.userProfile.hasCompletedOnboarding = true;
-            saveState();
-            if (modalProfile) modalProfile.classList.remove('active');
-        });
+        closeProfileModal.addEventListener('click', handleProfileOnboardingCompletion);
     }
 
     if (btnTriggerAvatarUpload && inputAvatarFile) {
@@ -1069,10 +1126,8 @@ function initModals() {
             state.userProfile.pinEnabled = pinEnabled;
             state.userProfile.pinCode = pinEnabled ? pinVal : '';
             state.userProfile.avatar = tempAvatarBase64;
-            state.userProfile.hasCompletedOnboarding = true;
 
-            saveState();
-            if (modalProfile) modalProfile.classList.remove('active');
+            handleProfileOnboardingCompletion();
             alert('✅ Đã lưu cài đặt Hồ Sơ & Bảo Mật thành công!');
         });
     }
