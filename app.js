@@ -1,4 +1,4 @@
-// === PERSONAL FINANCE APP V4/V5 JS LOGIC (WITH FULL DATE & TIME FOR PAST & FUTURE TRANSACTIONS) ===
+// === PERSONAL FINANCE APP V4/V5 JS LOGIC (WITH 'ĂN UỐNG & THỰC PHẨM' AS DEFAULT EXPENSE CATEGORY) ===
 
 // --- DEFAULT INITIAL STATE ---
 const DEFAULT_STATE = {
@@ -21,15 +21,16 @@ const DEFAULT_STATE = {
         { id: 'acc-5', name: 'Tiền mặt', type: 'Tiền mặt', initialBalance: 0, note: 'Chi tiêu hàng ngày' }
     ],
     categories: [
-        { name: 'Tiền nhà / Điện nước', type: 'expense', ruleGroup: 'Thiết yếu (50%)' },
+        // Daily expense categories sorted by frequency ('Ăn uống & Thực phẩm' as top priority default)
         { name: 'Ăn uống & Thực phẩm', type: 'expense', ruleGroup: 'Thiết yếu (50%)' },
-        { name: 'Đi lại & Xe cộ', type: 'expense', ruleGroup: 'Thiết yếu (50%)' },
-        { name: 'Y tế & Sức khỏe', type: 'expense', ruleGroup: 'Thiết yếu (50%)' },
-        { name: 'Hiếu hỷ & Gia đình', type: 'expense', ruleGroup: 'Thiết yếu (50%)' },
-        { name: 'Giải trí & Thể thao', type: 'expense', ruleGroup: 'Mong muốn (30%)' },
-        { name: 'Mua sắm & Cá nhân', type: 'expense', ruleGroup: 'Mong muốn (30%)' },
         { name: 'Ăn tiệm & Cà phê', type: 'expense', ruleGroup: 'Mong muốn (30%)' },
+        { name: 'Đi lại & Xe cộ', type: 'expense', ruleGroup: 'Thiết yếu (50%)' },
+        { name: 'Tiền nhà / Điện nước', type: 'expense', ruleGroup: 'Thiết yếu (50%)' },
+        { name: 'Mua sắm & Cá nhân', type: 'expense', ruleGroup: 'Mong muốn (30%)' },
+        { name: 'Y tế & Sức khỏe', type: 'expense', ruleGroup: 'Thiết yếu (50%)' },
+        { name: 'Giải trí & Thể thao', type: 'expense', ruleGroup: 'Mong muốn (30%)' },
         { name: 'Du lịch & Dã ngoại', type: 'expense', ruleGroup: 'Mong muốn (30%)' },
+        { name: 'Hiếu hỷ & Gia đình', type: 'expense', ruleGroup: 'Thiết yếu (50%)' },
         { name: 'Học tập & Phát triển', type: 'expense', ruleGroup: 'Mong muốn (30%)' },
         { name: 'Quỹ Dự Phòng', type: 'expense', ruleGroup: 'Tiết kiệm & Đầu tư (20%)' },
         { name: 'Đầu tư Chứng khoán', type: 'expense', ruleGroup: 'Tiết kiệm & Đầu tư (20%)' },
@@ -1507,8 +1508,23 @@ function populateAddTxCategorySelect() {
         catSelect.appendChild(opt);
     });
 
-    if (filteredCats.length > 0 && document.getElementById('txRuleGroup')) {
-        document.getElementById('txRuleGroup').value = filteredCats[0].ruleGroup;
+    // EXPLICITLY SET DEFAULT CATEGORY: 'Ăn uống & Thực phẩm' FOR EXPENSE, 'Lương Cố Định' FOR INCOME
+    if (selectedType === 'expense') {
+        const defaultCat = filteredCats.find(c => c.name.includes('Ăn uống')) || filteredCats[0];
+        if (defaultCat) {
+            catSelect.value = defaultCat.name;
+            if (document.getElementById('txRuleGroup')) {
+                document.getElementById('txRuleGroup').value = defaultCat.ruleGroup;
+            }
+        }
+    } else {
+        const defaultCat = filteredCats.find(c => c.name.includes('Lương')) || filteredCats[0];
+        if (defaultCat) {
+            catSelect.value = defaultCat.name;
+            if (document.getElementById('txRuleGroup')) {
+                document.getElementById('txRuleGroup').value = defaultCat.ruleGroup;
+            }
+        }
     }
 
     accSelect.innerHTML = '';
