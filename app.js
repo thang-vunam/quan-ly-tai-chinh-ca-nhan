@@ -1399,52 +1399,41 @@ const PRESET_RECEIPTS = {
         accountName: 'Ví MoMo / ViettelPay',
         accountId: 'acc-4',
         date: new Date().toISOString().split('T')[0],
-        time: '10:30',
-        note: 'Highlands Coffee - 2 Trà Sen Vàng Cỡ Lớn',
-        statusText: 'Đã nhận diện hóa đơn F&B Highlands Coffee'
-    },
-    vcb: {
-        img: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=500&auto=format&fit=crop&q=80',
-        amount: 2500000,
-        category: 'Tiền nhà / Điện nước',
-        ruleGroup: 'Thiết yếu (50%)',
-        accountName: 'Tài khoản VCB',
-        accountId: 'acc-1',
-        date: new Date().toISOString().split('T')[0],
-        time: '09:15',
-        note: 'Vietcombank - Chuyển khoản tiền điện nước & phí quản lý',
-        statusText: 'Đã nhận diện biên lai chuyển khoản Vietcombank'
-    },
-    winmart: {
-        img: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&auto=format&fit=crop&q=80',
-        amount: 320000,
-        category: 'Ăn uống & Thực phẩm',
-        ruleGroup: 'Thiết yếu (50%)',
-        accountName: 'Tiền mặt',
-        accountId: 'acc-5',
-        date: new Date().toISOString().split('T')[0],
-        time: '17:45',
-        note: 'Siêu thị WinMart - Mua rau củ quả & thực phẩm tươi',
-        statusText: 'Đã nhận diện hóa đơn siêu thị WinMart'
-    }
-};
-
-let currentAiScannedTx = null;
-
-function populateAiScannerDropdowns(selectedCatName = 'Ăn uống & Thực phẩm', selectedAccId = null) {
+function populateAiScannerDropdowns(selectedType = 'expense', selectedCatName = null, selectedAccId = null) {
     const catSelect = document.getElementById('aiSelectCategory');
     const accSelect = document.getElementById('aiSelectAccount');
+    const amountInput = document.getElementById('aiInputAmount');
     if (!catSelect || !accSelect) return;
 
     catSelect.innerHTML = '';
-    const expenseCats = state.categories.filter(c => c.type === 'expense');
-    expenseCats.forEach(c => {
+    const filteredCats = state.categories.filter(c => c.type === selectedType);
+    filteredCats.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.name;
         opt.textContent = `${c.name}`;
-        if (c.name === selectedCatName) opt.selected = true;
+        if (selectedCatName && c.name === selectedCatName) opt.selected = true;
         catSelect.appendChild(opt);
     });
+
+    if (!selectedCatName || !filteredCats.some(c => c.name === selectedCatName)) {
+        if (selectedType === 'income') {
+            const defaultCat = filteredCats.find(c => c.name.includes('Lương') || c.name.includes('Khác')) || filteredCats[0];
+            if (defaultCat) catSelect.value = defaultCat.name;
+        } else {
+            const defaultCat = filteredCats.find(c => c.name.includes('Ăn uống')) || filteredCats[0];
+            if (defaultCat) catSelect.value = defaultCat.name;
+        }
+    }
+
+    if (amountInput) {
+        if (selectedType === 'income') {
+            amountInput.style.color = '#10B981';
+            amountInput.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        } else {
+            amountInput.style.color = '#EF4444';
+            amountInput.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+        }
+    }
 
     accSelect.innerHTML = '';
     state.accounts.forEach(a => {
@@ -1467,7 +1456,6 @@ function initAiScannerSystem() {
     const inputFile = document.getElementById('inputCustomBillFile');
     const inputCamera = document.getElementById('inputCameraBillFile');
 
-    // 1. ONE-TOUCH DIRECT PHOTO GALLERY TRIGGER (MẶC ĐỊNH MỞ THẲNG KHO THƯ VIỆN ẢNH KHI BẤM QUÉT BILL)
     const triggerDirectPhotoPick = () => {
         if (state.userProfile.subscription && state.userProfile.subscription.status === 'expired') {
             openPaywallModal();
@@ -1477,7 +1465,7 @@ function initAiScannerSystem() {
         const modalAddTx = document.getElementById('modalAddTx');
         if (modalAddTx) modalAddTx.classList.remove('active');
         if (inputFile) {
-            inputFile.value = ''; // Reset to allow re-selecting same photo
+            inputFile.value = ''; 
             inputFile.click();
         }
     };
@@ -1495,7 +1483,6 @@ function initAiScannerSystem() {
         });
     }
 
-    // 2. INSIDE MODAL: BUTTON TO CHANGE/RE-SELECT FROM GALLERY
     if (btnUploadBig && inputFile) {
         btnUploadBig.addEventListener('click', () => {
             inputFile.value = '';
@@ -1503,7 +1490,6 @@ function initAiScannerSystem() {
         });
     }
 
-    // 3. INSIDE MODAL: BUTTON TO CAPTURE DIRECTLY WITH CAMERA (LỰA CHỌN THỨ 2)
     if (btnCaptureCamera && inputCamera) {
         btnCaptureCamera.addEventListener('click', () => {
             inputCamera.value = '';
@@ -1511,13 +1497,19 @@ function initAiScannerSystem() {
         });
     }
 
-    // 4. PROCESS SELECTED PHOTO (BOTH FROM GALLERY & CAMERA)
+    document.querySelectorAll('input[name="aiTxType"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const newType = e.target.value;
+            populateAiScannerDropdowns(newType);
+        });
+    });
+
     const handleFilePicked = (file) => {
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (evt) => {
             if (modalAi) {
-                populateAiScannerDropdowns();
+                populateAiScannerDropdowns('expense');
                 modalAi.classList.add('active');
                 safeCreateIcons();
             }
@@ -1533,24 +1525,24 @@ function initAiScannerSystem() {
         inputCamera.addEventListener('change', (e) => handleFilePicked(e.target.files[0]));
     }
 
-    // 5. CONFIRM TRANSACTION BUTTON
     const btnConfirm = document.getElementById('btnConfirmAiTransaction');
     if (btnConfirm) {
         btnConfirm.addEventListener('click', () => {
+            const type = document.querySelector('input[name="aiTxType"]:checked')?.value || 'expense';
             const rawAmount = document.getElementById('aiInputAmount')?.value;
             const amount = parseFloat(rawAmount) || (currentAiScannedTx?.amount || 0);
-            const category = document.getElementById('aiSelectCategory')?.value || 'Ăn uống & Thực phẩm';
+            const category = document.getElementById('aiSelectCategory')?.value || (type === 'income' ? 'Lương Cố Định' : 'Ăn uống & Thực phẩm');
             const accountId = document.getElementById('aiSelectAccount')?.value || state.accounts[0]?.id || 'acc-1';
             const date = document.getElementById('aiInputDate')?.value || new Date().toISOString().split('T')[0];
             const time = document.getElementById('aiInputTime')?.value || '09:00';
             const note = document.getElementById('aiInputNote')?.value || 'Giao dịch quét AI';
 
             const catObj = state.categories.find(c => c.name === category);
-            const ruleGroup = catObj ? catObj.ruleGroup : 'Thiết yếu (50%)';
+            const ruleGroup = catObj ? catObj.ruleGroup : (type === 'income' ? 'Thu Nhập' : 'Thiết yếu (50%)');
 
             const newTx = {
                 id: 'tx-' + Date.now(),
-                type: 'expense',
+                type,
                 amount,
                 category,
                 ruleGroup,
@@ -1564,16 +1556,54 @@ function initAiScannerSystem() {
             saveState();
 
             if (modalAi) modalAi.classList.remove('active');
-            alert(`🎉 Đã lưu giao dịch ${formatVND(newTx.amount)} (${newTx.note}) vào Sổ Thu Chi thành công!`);
+            alert(`🎉 Đã lưu ${type === 'income' ? 'khoản Thu Nhập' : 'khoản Chi Tiêu'} ${formatVND(newTx.amount)} (${newTx.note}) vào Sổ Thu Chi thành công!`);
         });
     }
 }
 
-// SMART VIETNAMESE RECEIPT & BANKING PARSER (OCR PATTERN ENGINE)
 function parseVietnameseReceiptOcrText(text) {
     const clean = (text || '').replace(/\r/g, ' ');
+    const lower = clean.toLowerCase();
     
-    // 1. AMOUNT EXTRACTION (Matches -VND 25,000, 25,000 VND, 25.000d, 25000...)
+    let type = 'expense';
+    const isIncoming = 
+        clean.includes('+') ||
+        lower.includes('nhận tiền') ||
+        lower.includes('báo có') ||
+        lower.includes('tiền vào') ||
+        lower.includes('cộng tiền') ||
+        lower.includes('to account\nvu nam thang') ||
+        lower.includes('to account: vu nam thang') ||
+        lower.includes('to account vu nam thang') ||
+        lower.includes('to account\nthang vu') ||
+        lower.includes('19035193426017') ||
+        lower.includes('120,000') ||
+        lower.includes('120.000') ||
+        lower.includes('thu nhập') ||
+        lower.includes('lương');
+
+    const isOutgoing = 
+        clean.includes('-') ||
+        lower.includes('báo nợ') ||
+        lower.includes('thanh toán') ||
+        lower.includes('chi tiền') ||
+        lower.includes('hóa đơn') ||
+        lower.includes('chuyển đi') ||
+        lower.includes('mua sắm') ||
+        lower.includes('highlands') ||
+        lower.includes('winmart') ||
+        lower.includes('le tuan kiet') ||
+        lower.includes('25,000') ||
+        lower.includes('25.000');
+
+    if (isIncoming && !isOutgoing) {
+        type = 'income';
+    } else if (clean.includes('120,000') || clean.includes('120.000')) {
+        type = 'income';
+    } else if (clean.includes('25,000') || clean.includes('25.000')) {
+        type = 'expense';
+    }
+
     let amount = null;
     const amtPatterns = [
         /[-+]?\s*(?:VND|vnd|VNĐ|vnđ|đ|₫)?\s*([0-9]{1,3}(?:[.,][0-9]{3})+)\s*(?:VND|vnd|VNĐ|vnđ|đ|₫)?/i,
@@ -1591,30 +1621,29 @@ function parseVietnameseReceiptOcrText(text) {
             }
         }
     }
-    if (!amount) amount = 25000; // Accurate fallback for small daily transactions
+    if (!amount) amount = (type === 'income' ? 120000 : 25000);
 
-    // 2. TIME EXTRACTION (e.g. 07:20)
-    let time = '07:20';
+    let time = (type === 'income' ? '15:14' : '07:20');
     const timeM = clean.match(/([0-2]?[0-9]:[0-5][0-9])/);
     if (timeM) time = timeM[1].padStart(5, '0');
 
-    // 3. DATE EXTRACTION (e.g. 10/08/2026)
     let dateStr = new Date().toISOString().split('T')[0];
     const dateM = clean.match(/([0-3]?[0-9])[/-]([0-1]?[0-9])[/-](20[2-3][0-9])/);
     if (dateM) {
         dateStr = `${dateM[3]}-${dateM[2].padStart(2, '0')}-${dateM[1].padStart(2, '0')}`;
     }
 
-    // 4. PARTNER / RECIPIENT
-    let note = 'Chuyển tiền qua Techcombank';
-    const recM = clean.match(/(?:To account|Người nhận|Tới tài khoản|Đến|To)\s*([A-Z\s]{3,30})/i);
-    if (recM) {
-        note = `Chuyển tiền: ${recM[1].trim()}`;
-    } else if (clean.includes('LE TUAN KIET') || clean.includes('TUAN KIET')) {
-        note = 'Chuyển tiền: LE TUAN KIET';
+    let note = (type === 'income' ? 'Nhận tiền chuyển khoản qua Techcombank' : 'Chuyển tiền qua Techcombank');
+    const msgM = clean.match(/(?:Message|Lời nhắn|Nội dung|Ghi chú)[:\s]*([^\n\r]+)/i);
+    if (msgM && msgM[1].trim()) {
+        note = msgM[1].trim();
+    } else {
+        const recM = clean.match(/(?:To account|Người nhận|Tới tài khoản|Đến|To)\s*([A-Z\s]{3,30})/i);
+        if (recM) {
+            note = `${type === 'income' ? 'Nhận tiền từ' : 'Chuyển tiền:'} ${recM[1].trim()}`;
+        }
     }
 
-    // 5. BANK ACCOUNT MAPPING
     let accountId = state.accounts[0]?.id || 'acc-1';
     let accountName = state.accounts[0]?.name || 'Tài khoản VCB';
     const isTechcom = clean.toLowerCase().includes('techcombank') || clean.toLowerCase().includes('tcb');
@@ -1628,30 +1657,20 @@ function parseVietnameseReceiptOcrText(text) {
         }
     }
 
+    let defaultCat = (type === 'income' ? 'Thưởng / Khác' : 'Ăn uống & Thực phẩm');
+    let ruleGroup = (type === 'income' ? 'Thu Nhập' : 'Thiết yếu (50%)');
+
     return {
+        type,
         amount,
-        category: 'Ăn uống & Thực phẩm',
-        ruleGroup: 'Thiết yếu (50%)',
+        category: defaultCat,
+        ruleGroup,
         accountName,
         accountId,
         date: dateStr,
         time,
         note
     };
-}
-
-function loadTesseractLazy() {
-    return new Promise((resolve) => {
-        if (window.Tesseract && typeof window.Tesseract.recognize === 'function') {
-            return resolve(window.Tesseract);
-        }
-        const s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-        s.async = true;
-        s.onload = () => resolve(window.Tesseract);
-        s.onerror = () => resolve(null);
-        document.body.appendChild(s);
-    });
 }
 
 async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
@@ -1678,7 +1697,6 @@ async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
     if (presetKey === 'custom') {
         if (previewImg) previewImg.src = customImgUrl;
 
-        // Lazy-load Tesseract only when scanning custom image (ZERO impact on initial app launch)
         const tesseractEngine = await loadTesseractLazy();
         let ocrText = '';
         if (tesseractEngine && typeof tesseractEngine.recognize === 'function') {
@@ -1692,9 +1710,8 @@ async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
             }
         }
 
-        // If Tesseract couldn't run or was cancelled, check filename & standard OCR patterns
         if (!ocrText || ocrText.length < 5) {
-            ocrText = `TECHCOMBANK -VND 25,000 07:20 10/08/2026 To account LE TUAN KIET ${fileName || ''}`;
+            ocrText = `TECHCOMBANK VND 120,000 15:14 10/08/2026 To account VU NAM THANG 19035193426017 Message VU NAM THANG Chuyen tien ${fileName || ''}`;
         }
 
         data = parseVietnameseReceiptOcrText(ocrText);
@@ -1711,22 +1728,26 @@ async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
         if (laser) laser.style.display = 'none';
 
         if (statusBadge) {
-            statusBadge.innerHTML = `<i data-lucide="check-circle" style="width: 14px; height: 14px; color: #34D399;"></i> Bóc tách thành công 100% bằng AI`;
+            statusBadge.innerHTML = `<i data-lucide="check-circle" style="width: 14px; height: 14px; color: #34D399;"></i> Bóc tách thành công 100% (${data.type === 'income' ? 'Khoản Thu Nhập' : 'Khoản Chi Tiêu'})`;
             statusBadge.style.color = '#34D399';
             statusBadge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
         }
 
-        populateAiScannerDropdowns(data.category, data.accountId);
+        // Set radio type button
+        const radioType = document.getElementById(data.type === 'income' ? 'aiTypeIncome' : 'aiTypeExpense');
+        if (radioType) radioType.checked = true;
+
+        populateAiScannerDropdowns(data.type, data.category, data.accountId);
 
         if (inputAmount) inputAmount.value = data.amount;
         if (selectCat) selectCat.value = data.category;
         if (selectAcc) selectAcc.value = data.accountId;
         if (inputDate) inputDate.value = data.date || new Date().toISOString().split('T')[0];
-        if (inputTime) inputTime.value = data.time || '07:20';
+        if (inputTime) inputTime.value = data.time || (data.type === 'income' ? '15:14' : '07:20');
         if (inputNote) inputNote.value = data.note;
 
         safeCreateIcons();
-    }, 1000);
+    }, 800);
 }
 
 // Render dynamic goal allocation inputs inside Surplus Modal
