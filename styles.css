@@ -819,9 +819,11 @@ input:checked + .slider-round:before { transform: translateX(20px); }
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
 }
 
+.pin-dots-row,
 .pin-dots-container {
     display: flex;
     justify-content: center;
+    align-items: center;
     gap: 16px;
     margin-bottom: 24px;
 }
@@ -831,6 +833,7 @@ input:checked + .slider-round:before { transform: translateX(20px); }
     height: 14px;
     border-radius: 50%;
     border: 2px solid var(--text-muted);
+    background: transparent;
     transition: all 0.2s ease;
 }
 
@@ -840,12 +843,15 @@ input:checked + .slider-round:before { transform: translateX(20px); }
     box-shadow: 0 0 12px var(--accent-blue);
 }
 
+.pin-keypad-grid,
 .pin-keypad {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    gap: 14px;
     max-width: 280px;
     margin: 0 auto;
+    justify-items: center;
+    align-items: center;
 }
 
 .keypad-btn {
