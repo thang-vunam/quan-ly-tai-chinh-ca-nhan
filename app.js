@@ -1844,7 +1844,10 @@ function populateAddTxCategorySelect() {
         catSelect.appendChild(opt);
     });
 
-    // EXPLICITLY SET DEFAULT CATEGORY: 'Ăn uống & Thực phẩm' FOR EXPENSE, 'Lương Cố Định' FOR INCOME
+    const amountInput = document.getElementById('txAmount');
+    const submitBtn = document.getElementById('btnSubmitTxForm');
+
+    // EXPLICITLY SET DEFAULT CATEGORY & DYNAMIC COLOR THEMING
     if (selectedType === 'expense') {
         const defaultCat = filteredCats.find(c => c.name.includes('Ăn uống')) || filteredCats[0];
         if (defaultCat) {
@@ -1853,6 +1856,13 @@ function populateAddTxCategorySelect() {
                 document.getElementById('txRuleGroup').value = defaultCat.ruleGroup;
             }
         }
+        if (amountInput) {
+            amountInput.style.color = '#EF4444';
+            amountInput.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+        }
+        if (submitBtn) {
+            submitBtn.style.background = 'linear-gradient(135deg, #EF4444, #DC2626)';
+        }
     } else {
         const defaultCat = filteredCats.find(c => c.name.includes('Lương')) || filteredCats[0];
         if (defaultCat) {
@@ -1860,6 +1870,13 @@ function populateAddTxCategorySelect() {
             if (document.getElementById('txRuleGroup')) {
                 document.getElementById('txRuleGroup').value = defaultCat.ruleGroup;
             }
+        }
+        if (amountInput) {
+            amountInput.style.color = '#10B981';
+            amountInput.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        }
+        if (submitBtn) {
+            submitBtn.style.background = 'linear-gradient(135deg, #10B981, #059669)';
         }
     }
 
