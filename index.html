@@ -505,7 +505,7 @@
             </div>
         </div>
 
-        <!-- MODAL: ADD / EDIT TRANSACTION -->
+        <!-- MODAL: ADD / EDIT TRANSACTION (WITH DATE & TIME SELECTION) -->
         <div class="modal-overlay" id="modalAddTx">
             <div class="modal-content">
                 <div class="modal-header">
@@ -549,9 +549,16 @@
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <label>Ngày thực hiện</label>
-                        <input type="date" id="txDate" class="custom-input" required>
+                    <!-- DATE & TIME INPUT ROW (RESPONSIVE GRID) -->
+                    <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label>Ngày thực hiện</label>
+                            <input type="date" id="txDate" class="custom-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Thời gian</label>
+                            <input type="time" id="txTime" class="custom-input" required>
+                        </div>
                     </div>
 
                     <div class="form-group">

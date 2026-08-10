@@ -1,4 +1,4 @@
-// === PERSONAL FINANCE APP V4/V5 JS LOGIC (WITH AUTO-PROMPT BIOMETRICS & PIN LOCK) ===
+// === PERSONAL FINANCE APP V4/V5 JS LOGIC (WITH FULL DATE & TIME FOR PAST & FUTURE TRANSACTIONS) ===
 
 // --- DEFAULT INITIAL STATE ---
 const DEFAULT_STATE = {
@@ -106,6 +106,37 @@ function safeCreateIcons() {
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
         try { window.lucide.createIcons(); } catch(e) {}
     }
+}
+
+// HELPER TO EXTRACT EXACT TIME FOR BOTH PAST (LEGACY) & NEW TRANSACTIONS
+function getTransactionTime(tx) {
+    if (tx.time && typeof tx.time === 'string' && tx.time.trim() !== '') {
+        return tx.time.trim();
+    }
+    // DYNAMIC RETROACTIVE RECOVERY: Extract exact creation timestamp from legacy tx.id (tx-1786086667605)
+    if (tx.id && typeof tx.id === 'string' && tx.id.startsWith('tx-')) {
+        const rawTs = tx.id.replace('tx-', '');
+        const ts = parseInt(rawTs);
+        if (!isNaN(ts) && ts > 1500000000000) {
+            const d = new Date(ts);
+            const hours = String(d.getHours()).padStart(2, '0');
+            const mins = String(d.getMinutes()).padStart(2, '0');
+            return `${hours}:${mins}`;
+        }
+    }
+    return '09:00';
+}
+
+// FORMAT DATE & TIME BEAUTIFULLY (DD/MM/YYYY HH:mm)
+function formatDisplayDateTime(tx) {
+    const timeStr = getTransactionTime(tx);
+    if (!tx.date) return timeStr;
+    const parts = tx.date.split('-');
+    if (parts.length === 3) {
+        // DD/MM/YYYY HH:mm
+        return `${parts[2]}/${parts[1]}/${parts[0]} ${timeStr}`;
+    }
+    return `${tx.date} ${timeStr}`;
 }
 
 // === DOM LOADED ===
@@ -692,10 +723,13 @@ function renderTransactions() {
     const selectedMonth = document.getElementById('selectMonth')?.value || 'all';
     const selectedYear = parseInt(document.getElementById('selectYear')?.value || '2026');
 
+    // SORT BY FULL DATE & TIME DESCENDING (MOST RECENT FIRST)
     const sortedAll = [...state.transactions].sort((a, b) => {
-        const timeA = new Date(a.date || 0).getTime();
-        const timeB = new Date(b.date || 0).getTime();
-        if (timeB !== timeA) return timeB - timeA;
+        const timeA = getTransactionTime(a);
+        const timeB = getTransactionTime(b);
+        const dtA = new Date(`${a.date || '1970-01-01'}T${timeA || '00:00'}`).getTime();
+        const dtB = new Date(`${b.date || '1970-01-01'}T${timeB || '00:00'}`).getTime();
+        if (!isNaN(dtA) && !isNaN(dtB) && dtB !== dtA) return dtB - dtA;
         return (b.id || '').localeCompare(a.id || '');
     });
 
@@ -760,6 +794,7 @@ function renderTransactions() {
         const iconName = tx.type === 'income' ? 'arrow-down-left' : 'arrow-up-right';
         const colorClass = tx.type === 'income' ? 'income' : 'expense';
         const sign = tx.type === 'income' ? '+' : '-';
+        const formattedDateTime = formatDisplayDateTime(tx);
 
         const item = document.createElement('div');
         item.className = 'tx-item';
@@ -769,7 +804,7 @@ function renderTransactions() {
             </div>
             <div class="tx-details">
                 <div class="tx-cat-name">${tx.category}</div>
-                <div class="tx-meta">${tx.date} • ${acc.name} • <span style="opacity: 0.75">${tx.note || ''}</span></div>
+                <div class="tx-meta"><span style="color: #60A5FA; font-weight: 500;">${formattedDateTime}</span> • ${acc.name} • <span style="opacity: 0.75">${tx.note || ''}</span></div>
             </div>
             <div class="tx-right">
                 <div class="tx-amount ${colorClass}">${sign}${formatVND(tx.amount || 0)}</div>
@@ -827,6 +862,9 @@ function openEditTransactionModal(txId) {
     document.getElementById('txRuleGroup').value = tx.ruleGroup;
     document.getElementById('txAccount').value = tx.accountId;
     document.getElementById('txDate').value = tx.date;
+    if (document.getElementById('txTime')) {
+        document.getElementById('txTime').value = getTransactionTime(tx);
+    }
     document.getElementById('txNote').value = tx.note || '';
 
     const modalAddTx = document.getElementById('modalAddTx');
@@ -1121,7 +1159,15 @@ function initModals() {
         document.getElementById('modalTxTitle').innerHTML = '<i data-lucide="plus-circle"></i> Thêm Giao Dịch Mới';
         document.getElementById('btnSubmitTxForm').textContent = 'Lưu Giao Dịch';
         document.getElementById('formAddTx').reset();
-        if (document.getElementById('txDate')) document.getElementById('txDate').valueAsDate = new Date();
+
+        const now = new Date();
+        if (document.getElementById('txDate')) document.getElementById('txDate').valueAsDate = now;
+        if (document.getElementById('txTime')) {
+            const hours = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('txTime').value = `${hours}:${mins}`;
+        }
+
         populateAddTxCategorySelect();
         if (modalAddTx) modalAddTx.classList.add('active');
         safeCreateIcons();
@@ -1160,19 +1206,26 @@ function initModals() {
             const ruleGroup = document.getElementById('txRuleGroup').value;
             const accountId = document.getElementById('txAccount').value;
             const date = document.getElementById('txDate').value;
+            
+            let time = document.getElementById('txTime')?.value;
+            if (!time) {
+                const now = new Date();
+                time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            }
+
             const note = document.getElementById('txNote').value;
 
             if (editingId) {
                 const index = state.transactions.findIndex(t => t.id === editingId);
                 if (index !== -1) {
                     state.transactions[index] = {
-                        id: editingId, type, amount, category, ruleGroup, accountId, date, note
+                        id: editingId, type, amount, category, ruleGroup, accountId, date, time, note
                     };
                 }
             } else {
                 const newTx = {
                     id: 'tx-' + Date.now(),
-                    type, amount, category, ruleGroup, accountId, date, note
+                    type, amount, category, ruleGroup, accountId, date, time, note
                 };
                 state.transactions.push(newTx);
             }
