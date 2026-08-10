@@ -793,7 +793,33 @@ body {
 
 .disabled-input {
     opacity: 0.6;
-    cursor: not-allowed;
+/* Goal Card Header & Percent Pill Badge */
+.goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+.goal-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main);
+    flex: 1;
+    word-break: break-word;
+}
+
+.goal-percent {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #10B981;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 /* Avatar Upload Box & Large Profile Avatar (Fixing class mismatch avatar-big vs avatar-large & button overlap) */

@@ -66,6 +66,11 @@ function loadState() {
             if (!parsed.accounts) parsed.accounts = JSON.parse(JSON.stringify(DEFAULT_STATE.accounts));
             if (!parsed.categories) parsed.categories = JSON.parse(JSON.stringify(DEFAULT_STATE.categories));
             if (!parsed.transactions) parsed.transactions = [];
+            if (parsed.goals) {
+                parsed.goals.forEach(g => {
+                    if (g.title) g.title = g.title.replace(/\s*\d+(\.\d+)?%\s*$/, '').trim();
+                });
+            }
             return parsed;
         }
     } catch(e) {
@@ -930,12 +935,13 @@ function renderGoals() {
 
     state.goals.forEach(goal => {
         const percent = goal.target > 0 ? (((goal.current || 0) / goal.target) * 100).toFixed(1) : 0;
+        const displayTitle = (goal.title || '').replace(/\s*\d+(\.\d+)?%\s*$/, '').trim();
 
         const card = document.createElement('div');
         card.className = 'goal-card';
         card.innerHTML = `
             <div class="goal-header">
-                <span class="goal-title">${goal.title}</span>
+                <span class="goal-title">${displayTitle}</span>
                 <span class="goal-percent">${percent}%</span>
             </div>
             <div class="rule-title-row" style="margin-top: 4px;">
@@ -2497,14 +2503,20 @@ function openVipCustomHub() {
     if (!modalVipHub) return;
 
     const sub = state.userProfile.subscription || {};
-    const maxQuota = sub.plan === 'super_vip' ? 10 : 3;
-    const quota = sub.vipRequestsRemaining !== undefined ? sub.vipRequestsRemaining : maxQuota;
+    const maxQuota = sub.plan === 'super_vip' ? 10 : (sub.plan === 'vip' ? 3 : 0);
+    const history = sub.vipRequestsHistory || [];
+    const submittedCount = history.length;
     const quotaDisplay = document.getElementById('vipQuotaDisplay');
+
     if (quotaDisplay) {
-        if (sub.plan === 'super_vip') {
-            quotaDisplay.innerHTML = `🚀 ${quota} / ${maxQuota} Lượt Yêu Cầu May Đo Riêng`;
+        if (submittedCount >= maxQuota && maxQuota > 0) {
+            quotaDisplay.innerHTML = `⚠️ Đã Dùng Hết ${maxQuota} / ${maxQuota} Lượt Yêu Cầu May Đo`;
+            quotaDisplay.style.color = '#EF4444';
         } else {
-            quotaDisplay.innerHTML = `⭐️ ${quota} / ${maxQuota} Lượt Yêu Cầu May Đo Riêng`;
+            const currentAttempt = submittedCount + 1;
+            const icon = sub.plan === 'super_vip' ? '🚀' : '⭐️';
+            quotaDisplay.innerHTML = `${icon} Yêu Cầu Lần ${currentAttempt} / ${maxQuota}`;
+            quotaDisplay.style.color = '#F59E0B';
         }
     }
 
@@ -2515,10 +2527,12 @@ function openVipCustomHub() {
 
 function submitVipFeatureRequest() {
     const sub = state.userProfile.subscription || {};
-    let quota = sub.vipRequestsRemaining || 0;
+    const maxQuota = sub.plan === 'super_vip' ? 10 : (sub.plan === 'vip' ? 3 : 0);
+    const history = sub.vipRequestsHistory || [];
+    const submittedCount = history.length;
 
-    if (quota <= 0) {
-        alert('⚠️ Bạn đã sử dụng hết số lượt yêu cầu tính năng riêng của gói hiện tại.\nVui lòng nâng cấp thêm để gửi yêu cầu mới!');
+    if (submittedCount >= maxQuota && maxQuota > 0) {
+        alert(`⚠️ BẠN ĐÃ SỬ DỤNG ĐỦ ${maxQuota}/${maxQuota} LƯỢT YÊU CẦU MAY ĐO!\n\nCảm ơn bạn đã đồng hành cùng ứng dụng. Nếu cần thêm tính năng nâng cao, vui lòng liên hệ đội ngũ kỹ thuật.`);
         return;
     }
 
@@ -2539,14 +2553,19 @@ function submitVipFeatureRequest() {
 
     if (!sub.vipRequestsHistory) sub.vipRequestsHistory = [];
     sub.vipRequestsHistory.unshift(newReq);
-    sub.vipRequestsRemaining = quota - 1;
 
     saveState();
     renderSubscriptionBadge();
     openVipCustomHub();
 
     document.getElementById('formSubmitVipRequest').reset();
-    alert(`✅ ĐÃ GỬI YÊU CẦU THÀNH CÔNG!\n\nYêu cầu "${title}" đã được gửi tới đội ngũ kỹ thuật.\nSố lượt yêu cầu của bạn còn lại: ${sub.vipRequestsRemaining} lượt.`);
+
+    const newSubmitted = sub.vipRequestsHistory.length;
+    if (newSubmitted < maxQuota) {
+        alert(`✅ ĐÃ GỬI YÊU CẦU THÀNH CÔNG!\n\nYêu cầu "${title}" đã được gửi tới đội ngũ kỹ thuật.\nBạn đã sẵn sàng cho Yêu Cầu Lần ${newSubmitted + 1} / ${maxQuota}.`);
+    } else {
+        alert(`🎉 CHÚC MỪNG BẠN!\n\nBạn đã gửi thành công toàn bộ ${maxQuota}/${maxQuota} Yêu Cầu May Đo Riêng của gói [${(sub.plan || 'VIP').toUpperCase()}]!`);
+    }
 }
 
 function renderVipRequestHistory() {
@@ -2629,7 +2648,52 @@ function setSandboxState(stateType) {
     safeCreateIcons();
 }
 
+// Secret Developer / Tester Mode Control (?dev=true or 5-tap Header Gesture)
+function initDevModeControl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('dev') === 'true' || urlParams.get('test') === 'true') {
+        localStorage.setItem('personal_finance_app_dev_mode', 'true');
+    }
+
+    const isDevMode = localStorage.getItem('personal_finance_app_dev_mode') === 'true';
+    const sandboxBar = document.getElementById('testSandboxBar');
+    if (sandboxBar) {
+        sandboxBar.style.display = isDevMode ? 'flex' : 'none';
+    }
+
+    // 5-tap gesture on Header Title (#headerUserName / .user-profile)
+    const headerTitle = document.getElementById('btnOpenProfileModal') || document.querySelector('.top-bar .user-profile');
+    if (headerTitle) {
+        let tapCount = 0;
+        let lastTapTime = 0;
+        headerTitle.addEventListener('click', (e) => {
+            const now = Date.now();
+            if (now - lastTapTime < 800) {
+                tapCount++;
+            } else {
+                tapCount = 1;
+            }
+            lastTapTime = now;
+
+            if (tapCount >= 5) {
+                tapCount = 0;
+                e.stopPropagation();
+                const currentDev = localStorage.getItem('personal_finance_app_dev_mode') === 'true';
+                const newDev = !currentDev;
+                localStorage.setItem('personal_finance_app_dev_mode', newDev ? 'true' : 'false');
+                if (sandboxBar) sandboxBar.style.display = newDev ? 'flex' : 'none';
+                alert(`🛠️ TRUNG TÂM KIỂM THỬ (DEV CENTER) ĐÃ ${newDev ? 'BẬT 🟢' : 'TẮT 🔴'}!\n\n${newDev ? 'Thanh Sandbox Test Bar đã hiển thị riêng trên thiết bị của bạn.' : 'Ứng dụng đã trở về Chế độ Sản phẩm Chính thức (Clean Production).'}`);
+            }
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initDevModeControl();
+});
+
 // Make globally accessible for inline HTML onclick handlers
 window.selectPricingPlan = selectPricingPlan;
 window.setSandboxState = setSandboxState;
+window.initDevModeControl = initDevModeControl;
 

@@ -23,7 +23,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Stylesheet with Cache Busting -->
-    <link rel="stylesheet" href="styles.css?v=3.4.0">
+    <link rel="stylesheet" href="styles.css?v=4.0.0">
 </head>
 <body>
     <div class="app-container">
@@ -38,7 +38,7 @@
                         <span class="greeting">Xin chào 👋</span>
                         <span id="badgeUserPlan" class="badge" style="background: rgba(245, 158, 11, 0.2); color: #F59E0B; font-size: 0.68rem; padding: 2px 6px; border-radius: 6px; cursor: pointer;">🎁 7 Ngày Free</span>
                     </div>
-                    <h2 class="user-name" id="headerUserName">Tài Chính Cá Nhân</h2>
+                    <h2 class="user-name" id="headerUserName">Tài Chính Cá Nhân <span id="headerUserNameTitle"></span></h2>
                 </div>
             </div>
             <div class="top-actions">
@@ -51,7 +51,7 @@
         </header>
 
         <!-- MONETIZATION TESTING SANDBOX BAR (1-TAP STATE SWITCHER) -->
-        <div id="testSandboxBar" style="background: rgba(30, 41, 59, 0.95); border-bottom: 1px solid rgba(59, 130, 246, 0.3); padding: 8px 12px; font-size: 0.75rem; display: flex; align-items: center; justify-content: space-between; gap: 6px; overflow-x: auto; flex-shrink: 0; -webkit-overflow-scrolling: touch;">
+        <div id="testSandboxBar" style="display: none; background: rgba(30, 41, 59, 0.95); border-bottom: 1px solid rgba(59, 130, 246, 0.3); padding: 8px 12px; font-size: 0.75rem; align-items: center; justify-content: space-between; gap: 6px; overflow-x: auto; flex-shrink: 0; -webkit-overflow-scrolling: touch;">
             <div style="display: flex; align-items: center; gap: 4px; color: #60A5FA; font-weight: 700; white-space: nowrap;">
                 <i data-lucide="flask-conical" style="width: 14px; height: 14px;"></i> TEST SANDBOX:
             </div>
@@ -955,6 +955,6 @@
     <script src="lib/tesseract.min.js"></script>
 
     <!-- Application Script with Cache Busting -->
-    <script src="app.js?v=3.4.0"></script>
+    <script src="app.js?v=4.0.0"></script>
 </body>
 </html>
