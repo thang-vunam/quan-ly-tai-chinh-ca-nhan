@@ -1523,13 +1523,10 @@ function initAiScannerSystem() {
             }
             const previewImg = document.getElementById('scannerPreviewImg');
             if (previewImg) {
-                previewImg.onload = () => {
-                    triggerAiScan('custom', evt.target.result, file.name);
-                };
+                previewImg.onload = null;
                 previewImg.src = evt.target.result;
-            } else {
-                triggerAiScan('custom', evt.target.result, file.name);
             }
+            triggerAiScan('custom', evt.target.result, file.name);
         };
         reader.readAsDataURL(file);
     };
@@ -1828,15 +1825,13 @@ function analyzeReceiptImageOnCanvas(imgElement, fileName = '') {
     let type = 'expense';
     let amount = 0;
     let category = 'Ăn uống & Thực phẩm';
-    let note = 'Hóa đơn / Giao dịch quét ảnh';
+    let note = 'Giao dịch quét ảnh';
     let time = new Date().toTimeString().slice(0, 5);
 
     if (isGreenIncome || (isIncomeByFile && !isExpenseByFile)) {
         type = 'income';
-        amount = 120000;
         category = 'Thưởng / Khác';
-        note = 'Nhận tiền: VU NAM THANG Chuyen tien';
-        time = '15:14';
+        note = 'Giao dịch thu nhập';
     }
 
     let accountId = state.accounts[0]?.id || 'acc-1';
@@ -1877,7 +1872,10 @@ async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
     let data = null;
 
     if (presetKey === 'custom') {
-        if (previewImg) previewImg.src = customImgUrl;
+        if (previewImg) {
+            previewImg.onload = null;
+            previewImg.src = customImgUrl;
+        }
         
         // 1. RUN REAL OCR ON IMAGE
         const rawOcrText = await performRealOcrOnImage(customImgUrl, (pct) => {
@@ -1889,13 +1887,16 @@ async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
         if (rawOcrText && rawOcrText.trim().length > 3) {
             data = parseRealReceiptOcrOutput(rawOcrText, fileName);
         } else {
-            // Intelligent fallback with canvas analysis
+            // Intelligent fallback with canvas analysis (Amount = 0, no mock numbers)
             data = analyzeReceiptImageOnCanvas(previewImg, fileName);
         }
         data.img = customImgUrl;
     } else {
         data = PRESET_RECEIPTS[presetKey] || PRESET_RECEIPTS.highlands;
-        if (previewImg) previewImg.src = data.img;
+        if (previewImg) {
+            previewImg.onload = null;
+            previewImg.src = data.img;
+        }
     }
 
     currentAiScannedTx = data;
@@ -1918,7 +1919,7 @@ async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
     if (selectCat) selectCat.value = data.category;
     if (selectAcc) selectAcc.value = data.accountId;
     if (inputDate) inputDate.value = data.date || new Date().toISOString().split('T')[0];
-    if (inputTime) inputTime.value = data.time || (data.type === 'income' ? '15:14' : '07:20');
+    if (inputTime) inputTime.value = data.time || '12:00';
     if (inputNote) inputNote.value = data.note;
 
     safeCreateIcons();
