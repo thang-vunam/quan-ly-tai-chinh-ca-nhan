@@ -1577,67 +1577,103 @@ function initAiScannerSystem() {
 // PREPROCESS IMAGE FOR OCR (RESIZE & HIGH CONTRAST BINARIZATION PRESERVING GREEN/RED/BLUE TEXT)
 function preprocessImageForOcr(imgSrc) {
     return new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-            try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const maxDim = 1200;
-                let w = img.naturalWidth || img.width || 600;
-                let h = img.naturalHeight || img.height || 800;
-                if (w > maxDim || h > maxDim) {
-                    if (w > h) {
-                        h = Math.round((h * maxDim) / w);
-                        w = maxDim;
-                    } else {
-                        w = Math.round((w * maxDim) / h);
-                        h = maxDim;
-                    }
-                }
-                canvas.width = w;
-                canvas.height = h;
-                ctx.drawImage(img, 0, 0, w, h);
-                const imgData = ctx.getImageData(0, 0, w, h);
-                const d = imgData.data;
-                for (let i = 0; i < d.length; i += 4) {
-                    const r = d[i];
-                    const g = d[i+1];
-                    const b = d[i+2];
-
-                    const isGreenText = (g > 100 && g > r * 1.15 && g > b * 1.15);
-                    const isDarkText = (r < 125 && g < 125 && b < 125);
-                    const isRedText = (r > 130 && r > g * 1.35 && r > b * 1.35);
-                    const isBlueText = (b > 130 && b > r * 1.2 && b > g * 1.1);
-
-                    if (isGreenText || isDarkText || isRedText || isBlueText) {
-                        d[i] = 0;
-                        d[i+1] = 0;
-                        d[i+2] = 0;
-                    } else {
-                        d[i] = 255;
-                        d[i+1] = 255;
-                        d[i+2] = 255;
-                    }
-                }
-                ctx.putImageData(imgData, 0, 0);
-                resolve(canvas.toDataURL('image/jpeg', 0.9));
-            } catch(e) {
-                resolve(imgSrc);
+        try {
+            // Use canvas directly from the data URL without creating a new Image
+            // This avoids crossOrigin/tainted canvas issues on mobile browsers
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            // Do NOT set crossOrigin for data: URLs — it causes tainted canvas on some mobile browsers
+            if (imgSrc && !imgSrc.startsWith('data:')) {
+                img.crossOrigin = 'anonymous';
             }
-        };
-        img.onerror = () => resolve(imgSrc);
-        img.src = imgSrc;
+            img.onload = () => {
+                try {
+                    const maxDim = 1200;
+                    let w = img.naturalWidth || img.width || 600;
+                    let h = img.naturalHeight || img.height || 800;
+                    if (w > maxDim || h > maxDim) {
+                        if (w > h) {
+                            h = Math.round((h * maxDim) / w);
+                            w = maxDim;
+                        } else {
+                            w = Math.round((w * maxDim) / h);
+                            h = maxDim;
+                        }
+                    }
+                    canvas.width = w;
+                    canvas.height = h;
+                    ctx.drawImage(img, 0, 0, w, h);
+                    let imgData;
+                    try {
+                        imgData = ctx.getImageData(0, 0, w, h);
+                    } catch (secErr) {
+                        console.warn('Canvas getImageData security error:', secErr);
+                        window._ocrDebug = (window._ocrDebug || '') + ' | getImageData BLOCKED: ' + secErr.message;
+                        resolve(imgSrc);
+                        return;
+                    }
+                    const d = imgData.data;
+                    let greenCount = 0, darkCount = 0;
+                    for (let i = 0; i < d.length; i += 4) {
+                        const r = d[i];
+                        const g = d[i+1];
+                        const b = d[i+2];
+
+                        const isGreenText = (g > 100 && g > r * 1.15 && g > b * 1.15);
+                        const isDarkText = (r < 125 && g < 125 && b < 125);
+                        const isRedText = (r > 130 && r > g * 1.35 && r > b * 1.35);
+                        const isBlueText = (b > 130 && b > r * 1.2 && b > g * 1.1);
+
+                        if (isGreenText || isDarkText || isRedText || isBlueText) {
+                            d[i] = 0;
+                            d[i+1] = 0;
+                            d[i+2] = 0;
+                            if (isGreenText) greenCount++;
+                            if (isDarkText) darkCount++;
+                        } else {
+                            d[i] = 255;
+                            d[i+1] = 255;
+                            d[i+2] = 255;
+                        }
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+                    window._ocrDebug = `preprocess OK: ${w}x${h}, green=${greenCount}, dark=${darkCount}`;
+                    resolve(canvas.toDataURL('image/png'));
+                } catch(e) {
+                    console.warn('Preprocess inner error:', e);
+                    window._ocrDebug = (window._ocrDebug || '') + ' | preprocess err: ' + e.message;
+                    resolve(imgSrc);
+                }
+            };
+            img.onerror = (e) => {
+                console.warn('Preprocess image load error:', e);
+                window._ocrDebug = (window._ocrDebug || '') + ' | img.onerror fired';
+                resolve(imgSrc);
+            };
+            img.src = imgSrc;
+        } catch(outerErr) {
+            console.warn('Preprocess outer error:', outerErr);
+            window._ocrDebug = (window._ocrDebug || '') + ' | outer err: ' + outerErr.message;
+            resolve(imgSrc);
+        }
     });
 }
 
 // REAL TESSERACT OCR ENGINE
 async function performRealOcrOnImage(imgSrc, onProgress) {
+    window._ocrDebug = 'start';
     if (!window.Tesseract || typeof window.Tesseract.recognize !== 'function') {
+        window._ocrDebug = 'Tesseract NOT LOADED';
         return null;
     }
     try {
+        window._ocrDebug = 'preprocessing...';
         const processedUrl = await preprocessImageForOcr(imgSrc);
+        const isProcessed = (processedUrl !== imgSrc);
+        window._ocrDebug += ` | preprocessed=${isProcessed}`;
+        
+        window._ocrDebug += ' | running Tesseract...';
         let res = await window.Tesseract.recognize(processedUrl, 'eng', {
             logger: (m) => {
                 if (m.status === 'recognizing text' && typeof onProgress === 'function') {
@@ -1646,20 +1682,25 @@ async function performRealOcrOnImage(imgSrc, onProgress) {
             }
         });
         let text = res?.data?.text || '';
+        window._ocrDebug += ` | ocr1 len=${text.trim().length}`;
         
         // If processed text is short, fallback to recognizing raw original image
         if (!text || text.trim().length < 8) {
             try {
+                window._ocrDebug += ' | trying raw fallback...';
                 const rawRes = await window.Tesseract.recognize(imgSrc, 'eng');
                 if (rawRes?.data?.text && rawRes.data.text.trim().length > text.trim().length) {
                     text = rawRes.data.text;
+                    window._ocrDebug += ` | raw len=${text.trim().length}`;
                 }
             } catch(e2) {
-                console.log("Raw OCR note:", e2);
+                window._ocrDebug += ` | raw err: ${e2.message}`;
             }
         }
+        window._ocrDebug += ` | FINAL text: [${text.trim().substring(0, 120)}]`;
         return text;
     } catch(e) {
+        window._ocrDebug += ` | Tesseract EXCEPTION: ${e.message}`;
         console.warn("Tesseract OCR error note:", e);
         return null;
     }
@@ -1847,7 +1888,8 @@ function parseRealReceiptOcrOutput(text, fileName = '') {
         accountId,
         date: dateStr,
         time,
-        note
+        note,
+        _rawOcrText: clean.substring(0, 200)
     };
 }
 
@@ -1975,10 +2017,20 @@ async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
 
     if (laser) laser.style.display = 'none';
 
+    // Build debug info for status badge
+    const debugInfo = window._ocrDebug || 'no debug';
+    const ocrTextPreview = (data._rawOcrText || '').substring(0, 80);
+
     if (statusBadge) {
-        statusBadge.innerHTML = `<i data-lucide="check-circle" style="width: 14px; height: 14px; color: #34D399;"></i> Bóc tách thành công 100% (${data.type === 'income' ? 'Khoản Thu Nhập' : 'Khoản Chi Tiêu'})`;
-        statusBadge.style.color = '#34D399';
-        statusBadge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        if (data.amount > 0) {
+            statusBadge.innerHTML = `<i data-lucide="check-circle" style="width: 14px; height: 14px; color: #34D399;"></i> Bóc tách thành công: ${data.type === 'income' ? 'Thu Nhập' : 'Chi Tiêu'} ${formatVND(data.amount)}`;
+            statusBadge.style.color = '#34D399';
+            statusBadge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        } else {
+            statusBadge.innerHTML = `<i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: #FBBF24;"></i> Không đọc được số tiền. Debug: ${debugInfo.substring(0, 100)}`;
+            statusBadge.style.color = '#FBBF24';
+            statusBadge.style.borderColor = 'rgba(251, 191, 36, 0.4)';
+        }
     }
 
     // Set radio type button
