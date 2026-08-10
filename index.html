@@ -474,6 +474,22 @@
 
                     <!-- AI EXTRACTED TRANSACTION PREVIEW CARD (INTERACTIVE & FULLY EDITABLE) -->
                     <div id="aiExtractedPreviewCard" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 16px; padding: 14px; margin-bottom: 6px;">
+                        
+                        <!-- TRANSACTION TYPE SELECTOR (CHI TIÊU VS THU NHẬP) -->
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="font-size: 0.78rem;">Loại Giao Dịch Bóc Tách</label>
+                            <div class="segmented-control">
+                                <label class="segment-btn">
+                                    <input type="radio" name="aiTxType" value="expense" id="aiTypeExpense" checked>
+                                    <span><i data-lucide="arrow-up-right"></i> Chi Tiêu</span>
+                                </label>
+                                <label class="segment-btn">
+                                    <input type="radio" name="aiTxType" value="income" id="aiTypeIncome">
+                                    <span><i data-lucide="arrow-down-left"></i> Thu Nhập</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <div class="form-group" style="margin-bottom: 10px;">
                             <label style="display: flex; justify-content: space-between; font-size: 0.78rem;">
                                 <span>Số Tiền Bóc Tách (VNĐ) <span style="color: #EF4444;">*</span></span>
