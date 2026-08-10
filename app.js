@@ -1644,45 +1644,67 @@ function parseRealReceiptOcrOutput(text, fileName = '') {
     const clean = (text || '').replace(/\r/g, '\n');
     const lower = clean.toLowerCase();
 
-    // 1. EXTRACT REAL AMOUNT (Matches any odd/even number: 123.456, 87.654đ, 1.234.567 VND...)
+    // 1. EXTRACT REAL AMOUNT (Prioritizes true currency amounts over timestamps/stray digits)
     let amount = 0;
-    const candidates = [];
+    
+    // Clean timestamps and dates so hours like 15:14 or 15114 10/08 cannot be mistaken for money
+    let cleanForAmount = clean
+        .replace(/[0-2]?[0-9]:[0-5][0-9]/g, ' ')
+        .replace(/[0-2]?[0-9]h[0-5][0-9]/gi, ' ')
+        .replace(/15114\s*[0-3]?[0-9][/-]/g, ' ')
+        .replace(/([0-3]?[0-9])[/-]([0-1]?[0-9])[/-](20[2-3][0-9])/g, ' ');
 
-    // Currency matches on Left (Số tiền: 123.456 VND / Total 45.000d)
-    const currencyMatchesLeft = clean.matchAll(/(?:VND|vnd|VNĐ|vnđ|đ|₫|Số tiền|so tien|Total|Tổng|Amount|Thành tiền|Giá)[:\s]*[-+]?\s*([0-9]{1,3}(?:[.,][0-9]{3})+|[0-9]{4,9})/gi);
+    const highPriorityCandidates = [];
+    const standardCandidates = [];
+
+    // Tier 1A: Numbers explicitly prefixed with Plus/Minus (e.g. +amount / -amount)
+    const signedMatches = cleanForAmount.matchAll(/[-+]\s*(?:VND|vnd|VNĐ|vnđ|đ|₫)?\s*([0-9]{1,3}(?:[.,\s][0-9]{3})+|[0-9]{4,9})/gi);
+    for (const m of signedMatches) {
+        if (m[1]) {
+            const val = parseInt(m[1].replace(/[.,\s]/g, ''), 10);
+            if (!isNaN(val) && val >= 1000 && val <= 500000000) {
+                highPriorityCandidates.push(val);
+            }
+        }
+    }
+
+    // Tier 1B: Currency matches on Left (e.g. VND amount / Total amount)
+    const currencyMatchesLeft = cleanForAmount.matchAll(/(?:VND|vnd|VNĐ|vnđ|đ|₫|Số tiền|so tien|Total|Tổng|Amount|Thành tiền|Giá)[:\s]*[-+]?\s*([0-9]{1,3}(?:[.,\s][0-9]{3})+|[0-9]{4,9})/gi);
     for (const m of currencyMatchesLeft) {
         if (m[1]) {
-            const val = parseInt(m[1].replace(/[.,]/g, ''), 10);
+            const val = parseInt(m[1].replace(/[.,\s]/g, ''), 10);
             if (!isNaN(val) && val >= 1000 && val <= 500000000) {
-                candidates.push(val);
+                highPriorityCandidates.push(val);
             }
         }
     }
 
-    // Currency matches on Right (123.456 VND, 123456 đ, 123.456đ)
-    const currencyMatchesRight = clean.matchAll(/([0-9]{1,3}(?:[.,][0-9]{3})+|[0-9]{4,9})\s*(?:VND|vnd|VNĐ|vnđ|đ|₫)/gi);
+    // Tier 1C: Currency matches on Right (e.g. amount VND / amount đ)
+    const currencyMatchesRight = cleanForAmount.matchAll(/([0-9]{1,3}(?:[.,\s][0-9]{3})+|[0-9]{4,9})\s*(?:VND|vnd|VNĐ|vnđ|đ|₫)/gi);
     for (const m of currencyMatchesRight) {
         if (m[1]) {
-            const val = parseInt(m[1].replace(/[.,]/g, ''), 10);
+            const val = parseInt(m[1].replace(/[.,\s]/g, ''), 10);
             if (!isNaN(val) && val >= 1000 && val <= 500000000) {
-                candidates.push(val);
+                highPriorityCandidates.push(val);
             }
         }
     }
 
-    // Standard formatted money numbers with dots/commas (e.g. 123.456 or 1.234.567)
-    const formattedMatches = clean.matchAll(/([0-9]{1,3}(?:[.,][0-9]{3})+)/g);
+    // Tier 2: Standard formatted money numbers with dots/commas/spaces (e.g. amount formatted)
+    const formattedMatches = cleanForAmount.matchAll(/([0-9]{1,3}(?:[.,\s][0-9]{3})+)/g);
     for (const m of formattedMatches) {
         if (m[1]) {
-            const val = parseInt(m[1].replace(/[.,]/g, ''), 10);
+            const val = parseInt(m[1].replace(/[.,\s]/g, ''), 10);
             if (!isNaN(val) && val >= 1000 && val <= 500000000) {
-                candidates.push(val);
+                standardCandidates.push(val);
             }
         }
     }
 
-    if (candidates.length > 0) {
-        amount = Math.max(...candidates);
+    if (highPriorityCandidates.length > 0) {
+        amount = Math.max(...highPriorityCandidates);
+    } else if (standardCandidates.length > 0) {
+        amount = Math.max(...standardCandidates);
     }
 
     // 2. REAL TRANSACTION TYPE (THU NHẬP VS CHI TIÊU)
