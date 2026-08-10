@@ -1615,6 +1615,20 @@ function parseVietnameseReceiptOcrText(text) {
     };
 }
 
+function loadTesseractLazy() {
+    return new Promise((resolve) => {
+        if (window.Tesseract && typeof window.Tesseract.recognize === 'function') {
+            return resolve(window.Tesseract);
+        }
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+        s.async = true;
+        s.onload = () => resolve(window.Tesseract);
+        s.onerror = () => resolve(null);
+        document.body.appendChild(s);
+    });
+}
+
 async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
     const laser = document.getElementById('scannerLaser');
     const previewImg = document.getElementById('scannerPreviewImg');
@@ -1639,11 +1653,12 @@ async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
     if (presetKey === 'custom') {
         if (previewImg) previewImg.src = customImgUrl;
 
-        // Run Tesseract.js if available or smart OCR parser
+        // Lazy-load Tesseract only when scanning custom image (ZERO impact on initial app launch)
+        const tesseractEngine = await loadTesseractLazy();
         let ocrText = '';
-        if (window.Tesseract && typeof window.Tesseract.recognize === 'function') {
+        if (tesseractEngine && typeof tesseractEngine.recognize === 'function') {
             try {
-                const ocrRes = await window.Tesseract.recognize(customImgUrl, 'eng+vie', {
+                const ocrRes = await tesseractEngine.recognize(customImgUrl, 'eng+vie', {
                     logger: () => {}
                 });
                 ocrText = ocrRes?.data?.text || '';
