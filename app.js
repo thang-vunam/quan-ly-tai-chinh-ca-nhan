@@ -1455,22 +1455,25 @@ function initAiScannerSystem() {
     const btnOpenTab = document.getElementById('btnOpenAiScannerTab');
     const btnTriggerFromAdd = document.getElementById('btnTriggerAiScanFromAdd');
     const closeAiModal = document.getElementById('closeAiScannerModal');
+    const btnUploadBig = document.getElementById('btnUploadCustomBillBig');
+    const btnCaptureCamera = document.getElementById('btnCaptureCameraBill');
+    const inputFile = document.getElementById('inputCustomBillFile');
+    const inputCamera = document.getElementById('inputCameraBillFile');
 
-    const openAiModal = () => {
-        if (modalAi) {
-            populateAiScannerDropdowns();
-            modalAi.classList.add('active');
-            triggerAiScan('highlands');
-            safeCreateIcons();
+    // 1. ONE-TOUCH DIRECT PHOTO GALLERY TRIGGER (MẶC ĐỊNH MỞ THẲNG KHO THƯ VIỆN ẢNH KHI BẤM QUÉT BILL)
+    const triggerDirectPhotoPick = () => {
+        const modalAddTx = document.getElementById('modalAddTx');
+        if (modalAddTx) modalAddTx.classList.remove('active');
+        if (inputFile) {
+            inputFile.value = ''; // Reset to allow re-selecting same photo
+            inputFile.click();
         }
     };
 
     [btnOpenTop, btnOpenTab, btnTriggerFromAdd].forEach(btn => {
         if (btn) btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const modalAddTx = document.getElementById('modalAddTx');
-            if (modalAddTx) modalAddTx.classList.remove('active');
-            openAiModal();
+            triggerDirectPhotoPick();
         });
     });
 
@@ -1480,35 +1483,45 @@ function initAiScannerSystem() {
         });
     }
 
-    // PRESET SWITCHERS
-    document.querySelectorAll('.preset-bill-btn[data-preset]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.preset-bill-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const presetKey = btn.getAttribute('data-preset');
-            triggerAiScan(presetKey);
-        });
-    });
-
-    // PROMINENT BUTTON: UPLOAD FROM PHOTO GALLERY / SAVED QR CODE
-    const btnUploadBig = document.getElementById('btnUploadCustomBillBig');
-    const inputFile = document.getElementById('inputCustomBillFile');
+    // 2. INSIDE MODAL: BUTTON TO CHANGE/RE-SELECT FROM GALLERY
     if (btnUploadBig && inputFile) {
-        btnUploadBig.addEventListener('click', () => inputFile.click());
-        inputFile.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (evt) => {
-                    document.querySelectorAll('.preset-bill-btn').forEach(b => b.classList.remove('active'));
-                    triggerAiScan('custom', evt.target.result, file.name);
-                };
-                reader.readAsDataURL(file);
-            }
+        btnUploadBig.addEventListener('click', () => {
+            inputFile.value = '';
+            inputFile.click();
         });
     }
 
-    // CONFIRM TRANSACTION BUTTON
+    // 3. INSIDE MODAL: BUTTON TO CAPTURE DIRECTLY WITH CAMERA (LỰA CHỌN THỨ 2)
+    if (btnCaptureCamera && inputCamera) {
+        btnCaptureCamera.addEventListener('click', () => {
+            inputCamera.value = '';
+            inputCamera.click();
+        });
+    }
+
+    // 4. PROCESS SELECTED PHOTO (BOTH FROM GALLERY & CAMERA)
+    const handleFilePicked = (file) => {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            if (modalAi) {
+                populateAiScannerDropdowns();
+                modalAi.classList.add('active');
+                safeCreateIcons();
+            }
+            triggerAiScan('custom', evt.target.result, file.name);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    if (inputFile) {
+        inputFile.addEventListener('change', (e) => handleFilePicked(e.target.files[0]));
+    }
+    if (inputCamera) {
+        inputCamera.addEventListener('change', (e) => handleFilePicked(e.target.files[0]));
+    }
+
+    // 5. CONFIRM TRANSACTION BUTTON
     const btnConfirm = document.getElementById('btnConfirmAiTransaction');
     if (btnConfirm) {
         btnConfirm.addEventListener('click', () => {
