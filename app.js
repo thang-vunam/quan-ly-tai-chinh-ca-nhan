@@ -2472,9 +2472,9 @@ function simulatePaymentSuccess(planKey, paidAmt) {
     state.userProfile.subscription.paidAmount = paidAmt;
 
     if (planKey === 'vip') {
-        state.userProfile.subscription.vipRequestsRemaining = (state.userProfile.subscription.vipRequestsRemaining || 0) + 3;
+        state.userProfile.subscription.vipRequestsRemaining = 3;
     } else if (planKey === 'super_vip') {
-        state.userProfile.subscription.vipRequestsRemaining = (state.userProfile.subscription.vipRequestsRemaining || 0) + 10;
+        state.userProfile.subscription.vipRequestsRemaining = 10;
     }
 
     saveState();
@@ -2497,10 +2497,15 @@ function openVipCustomHub() {
     if (!modalVipHub) return;
 
     const sub = state.userProfile.subscription || {};
-    const quota = sub.vipRequestsRemaining || 0;
+    const maxQuota = sub.plan === 'super_vip' ? 10 : 3;
+    const quota = sub.vipRequestsRemaining !== undefined ? sub.vipRequestsRemaining : maxQuota;
     const quotaDisplay = document.getElementById('vipQuotaDisplay');
     if (quotaDisplay) {
-        quotaDisplay.innerHTML = `⭐️ ${quota} Lượt Yêu Cầu May Đo Tính Năng Còn Lại`;
+        if (sub.plan === 'super_vip') {
+            quotaDisplay.innerHTML = `🚀 ${quota} / ${maxQuota} Lượt Yêu Cầu May Đo Riêng`;
+        } else {
+            quotaDisplay.innerHTML = `⭐️ ${quota} / ${maxQuota} Lượt Yêu Cầu May Đo Riêng`;
+        }
     }
 
     renderVipRequestHistory();
