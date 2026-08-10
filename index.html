@@ -3,25 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Quản Lý Tài Chính Cá Nhân V4 - 50/30/20 & PIN & Biometrics</title>
-
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Ứng dụng quản lý tài chính cá nhân chuẩn 50/30/20, phân bổ thặng dư ròng, tra cứu từ khóa thông minh và bảo mật PIN / Face ID / Touch ID.">
-    <meta name="theme-color" content="#090D16">
-
-    <!-- PWA & Apple Web App Icons -->
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    
+    <!-- SEO & Metadata for Financial Web App -->
+    <title>Quản Lý Tài Chính Cá Nhân V4/V5 - Đẳng Cấp & Bảo Mật</title>
+    <meta name="description" content="Ứng dụng quản lý tài chính cá nhân chuẩn quy tắc 50/30/20, phân bổ thặng dư ròng, bảo mật PIN 4 số, khôi phục OTP 2 lớp và mở khóa sinh trắc học Face ID / Vân tay.">
+    <meta name="theme-color" content="#0F172A">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tài Chính V4">
+    
+    <!-- PWA Web App Manifest & Favicons -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="icon-512.png">
 
-    <!-- Google Fonts & Lucide Icons & Chart.js & EmailJS SDK -->
+    <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
     <!-- Stylesheet -->
     <link rel="stylesheet" href="styles.css">
@@ -40,6 +41,7 @@
                 </div>
             </div>
             <div class="top-actions">
+                <button class="icon-btn" id="btnOpenAiScannerTop" title="Quét Hóa Đơn AI (Demo)"><i data-lucide="scan-line" style="color: #60A5FA;"></i></button>
                 <button class="icon-btn" id="btnOpenGuideModal" title="Hướng dẫn sử dụng"><i data-lucide="help-circle"></i></button>
                 <button class="icon-btn" id="btnResetData" title="Đặt lại dữ liệu ban đầu"><i data-lucide="rotate-ccw"></i></button>
                 <button class="icon-btn" id="btnQuickAddTop" title="Thêm giao dịch mới"><i data-lucide="plus"></i></button>
@@ -58,7 +60,7 @@
                     </div>
                     <div class="filter-controls">
                         <select id="selectMonth" class="custom-select">
-                            <option value="all">Tất cả các tháng</option>
+                            <option value="all">Cả năm</option>
                             <option value="1">Tháng 1</option>
                             <option value="2">Tháng 2</option>
                             <option value="3">Tháng 3</option>
@@ -73,62 +75,63 @@
                             <option value="12">Tháng 12</option>
                         </select>
                         <select id="selectYear" class="custom-select">
-                            <option value="2026" selected>2026</option>
                             <option value="2025">2025</option>
+                            <option value="2026" selected>2026</option>
+                            <option value="2027">2027</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- KPI Overview Grid (Income, Expense, Net Savings, Savings Rate) -->
+                <!-- KPI Highlights Grid -->
                 <div class="kpi-grid">
                     <div class="kpi-card income">
                         <div class="kpi-icon"><i data-lucide="arrow-down-left"></i></div>
-                        <div>
-                            <span class="kpi-title">Tổng Thu Nhập</span>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Tổng Thu Nhập</span>
                             <h3 class="kpi-value" id="kpiIncome">0 ₫</h3>
                         </div>
                     </div>
                     <div class="kpi-card expense">
                         <div class="kpi-icon"><i data-lucide="arrow-up-right"></i></div>
-                        <div>
-                            <span class="kpi-title">Tổng Chi Tiêu</span>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Tổng Chi Tiêu</span>
                             <h3 class="kpi-value" id="kpiExpense">0 ₫</h3>
                         </div>
                     </div>
                     <div class="kpi-card net">
                         <div class="kpi-icon"><i data-lucide="wallet"></i></div>
-                        <div>
-                            <span class="kpi-title">Thặng Dư Ròng</span>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Thặng Dư Ròng</span>
                             <h3 class="kpi-value" id="kpiNet">0 ₫</h3>
                         </div>
                     </div>
                     <div class="kpi-card rate">
-                        <div class="kpi-icon"><i data-lucide="pie-chart"></i></div>
-                        <div>
-                            <span class="kpi-title">Tỷ Lệ Tích Lũy</span>
+                        <div class="kpi-icon"><i data-lucide="percent"></i></div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Tỷ Lệ Tiết Kiệm</span>
                             <h3 class="kpi-value" id="kpiRate">0%</h3>
                         </div>
                     </div>
                 </div>
 
-                <!-- SMART SURPLUS ALLOCATION PROMPT CARD (CLEAN SINGLE LINE LAYOUT, REMOVED ICONS) -->
-                <div id="surplusAllocationCard" class="section-card" style="display: none; background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(59, 130, 246, 0.18)); border: 1px solid rgba(16, 185, 129, 0.4); padding: 14px 16px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: nowrap;">
-                        <div style="flex: 1; min-width: 0;">
-                            <span class="badge" style="background: rgba(16, 185, 129, 0.25); color: #10B981; font-weight: 700; white-space: nowrap; font-size: 0.78rem; display: inline-block;">Thặng Dư Ròng Kỳ Này</span>
-                            <h3 style="font-size: 1.05rem; color: #10B981; margin-top: 2px; white-space: nowrap; font-family: 'Outfit', sans-serif;" id="cardSurplusValue">0 ₫</h3>
-                        </div>
-                        <button class="btn-sm primary" id="btnOpenAllocateSurplusModal" style="background: linear-gradient(135deg, #10B981, #059669); white-space: nowrap; font-size: 0.78rem; padding: 8px 12px; flex-shrink: 0;">Phân Bổ Vào Mục Tiêu Ngay</button>
+                <!-- SMART NET SURPLUS ALLOCATION PROMPT CARD (Single line clean badge) -->
+                <div id="surplusAllocationCard" class="surplus-card" style="display: none; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 16px; padding: 16px; margin-bottom: 18px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span class="single-line-badge" style="font-weight: 700; color: #34D399; font-size: 0.95rem;">Thặng dư ròng kỳ này:</span>
+                        <strong id="cardSurplusValue" style="color: #34D399; font-size: 1.15rem;">0 ₫</strong>
                     </div>
+                    <p style="font-size: 0.8rem; color: #94A3B8; margin-bottom: 12px; line-height: 1.4;">
+                        Bạn có khoản tiền dư tích cực trong tháng! Hãy phân bổ khoản thặng dư này vào các <b>Mục Tiêu Tài Chính dài hạn</b> để tiền tiếp tục sinh lời.
+                    </p>
+                    <button class="btn-sm primary" id="btnOpenAllocateSurplusModal" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #10B981, #059669);"><i data-lucide="sparkles"></i> Phân Bổ Vào Mục Tiêu Ngay</button>
                 </div>
 
-                <!-- 50/30/20 Budget Allocation Cards -->
+                <!-- 50/30/20 Budgeting Rule Card (Single line clean badge) -->
                 <div class="section-card">
                     <div class="section-header">
-                        <h3><i data-lucide="sliders"></i> Phân Bổ Theo Quy Tắc 50/30/20</h3>
+                        <span class="single-line-badge" style="font-weight: 700; color: var(--text-heading); font-size: 1.05rem;"><i data-lucide="pie-chart" style="color: #3B82F6;"></i> Phân bổ ngân sách 50/30/20</span>
                     </div>
-
-                    <div class="rule-progress-list">
+                    <div class="rule-container">
                         <!-- 50% Needs -->
                         <div class="rule-item">
                             <div class="rule-title-row">
@@ -180,7 +183,10 @@
                 <div class="section-card">
                     <div class="section-header">
                         <h3><i data-lucide="receipt"></i> Nhật Ký Giao Dịch</h3>
-                        <button class="btn-sm primary" id="btnOpenAddModal"><i data-lucide="plus"></i> Thêm Giao Dịch</button>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-sm" id="btnOpenAiScannerTab" style="background: linear-gradient(135deg, #3B82F6, #8B5CF6); color: white; border: none;"><i data-lucide="scan-line"></i> Quét Bill AI</button>
+                            <button class="btn-sm primary" id="btnOpenAddModal"><i data-lucide="plus"></i> Thêm Giao Dịch</button>
+                        </div>
                     </div>
 
                     <!-- SMART SEARCH & ANALYTICS BAR -->
@@ -221,241 +227,287 @@
                         </div>
                     </div>
 
-                    <!-- TRANSACTION ITEMS LIST -->
-                    <div class="tx-list" id="transactionList">
-                        <!-- Items rendered by JS -->
+                    <!-- Transaction List -->
+                    <div class="transaction-list" id="transactionList">
+                        <!-- Loaded dynamically -->
                     </div>
                 </div>
             </section>
 
-            <!-- TAB 3: ACCOUNTS & WALLETS -->
+            <!-- TAB 3: ACCOUNTS & INITIAL BALANCE MANAGER -->
             <section id="tab-accounts" class="tab-page">
                 <div class="section-card">
                     <div class="section-header">
-                        <h3><i data-lucide="landmark"></i> Số Dư Tài Khoản & Ví</h3>
-                        <button class="btn-sm secondary" id="btnEditInitialBalance"><i data-lucide="edit-3"></i> Quản Lý Ví & Đầu Kỳ</button>
+                        <h3><i data-lucide="credit-card"></i> Ví & Tài Khoản</h3>
+                        <button class="btn-sm secondary" id="btnEditInitialBalance"><i data-lucide="settings"></i> Sửa Ví & Đầu Kỳ</button>
                     </div>
 
-                    <div class="accounts-grid" id="accountsList">
-                        <!-- Account cards rendered by JS -->
+                    <div class="account-summary-card" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15)); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 16px; padding: 16px; margin-bottom: 16px;">
+                        <span style="font-size: 0.8rem; color: #94A3B8; display: block;">Tổng Tài Sản Thực Tế Hiện Có:</span>
+                        <h2 id="totalAssetValue" style="color: #60A5FA; font-size: 1.5rem; margin-top: 4px;">0 ₫</h2>
+                        <span style="font-size: 0.75rem; color: #64748B;">Đã cộng dồn số dư đầu kỳ + toàn bộ thu chi</span>
                     </div>
 
-                    <div class="total-asset-box">
-                        <span>Tổng Tài Sản Khả Dụng:</span>
-                        <strong id="totalAssetValue">0 ₫</strong>
+                    <div class="accounts-list" id="accountsList">
+                        <!-- Loaded dynamically -->
                     </div>
                 </div>
             </section>
 
-            <!-- TAB 4: GOALS -->
+            <!-- TAB 4: FINANCIAL GOALS -->
             <section id="tab-goals" class="tab-page">
                 <div class="section-card">
                     <div class="section-header">
-                        <h3><i data-lucide="target"></i> Mục Tiêu Tài Chính Dài Hạn</h3>
+                        <h3><i data-lucide="target"></i> Mục Tiêu Tài Chính</h3>
                         <button class="btn-sm primary" id="btnAddGoalModal"><i data-lucide="plus"></i> Tạo Mục Tiêu</button>
                     </div>
                     <div class="goals-list" id="goalsList">
-                        <!-- Goals rendered by JS -->
+                        <!-- Loaded dynamically -->
                     </div>
                 </div>
             </section>
         </main>
 
-        <!-- Floating Quick Action Button -->
-        <button class="fab-btn" id="fabAddTx"><i data-lucide="plus"></i></button>
+        <!-- Floating Quick Action Button (+) -->
+        <button class="fab" id="fabAddTx" title="Thêm giao dịch nhanh"><i data-lucide="plus"></i></button>
 
-        <!-- Bottom Navigation Bar (iOS Style) -->
+        <!-- Bottom Navigation Bar (Mobile Friendly) -->
         <nav class="bottom-nav">
             <button class="nav-item active" data-tab="tab-dashboard">
                 <i data-lucide="layout-dashboard"></i>
                 <span>Tổng Quan</span>
             </button>
             <button class="nav-item" data-tab="tab-transactions">
-                <i data-lucide="list-checks"></i>
-                <span>Giao Dịch</span>
+                <i data-lucide="receipt"></i>
+                <span>Sổ Thu Chi</span>
             </button>
             <button class="nav-item" data-tab="tab-accounts">
                 <i data-lucide="credit-card"></i>
                 <span>Ví & Số Dư</span>
             </button>
             <button class="nav-item" data-tab="tab-goals">
-                <i data-lucide="compass"></i>
+                <i data-lucide="target"></i>
                 <span>Mục Tiêu</span>
             </button>
         </nav>
 
-        <!-- FULL-SCREEN PIN PASSCODE LOCK SCREEN MODAL (WITH BIOMETRIC FACE ID / FINGERPRINT SUPPORT) -->
+        <!-- === SECURITY PIN LOCK & BIOMETRIC OVERLAY SCREEN === -->
         <div class="pin-lock-overlay" id="modalPinLock" style="display: none;">
             <div class="pin-lock-card">
-                <div class="avatar-large" id="pinUserAvatarPreview" style="margin: 0 auto 12px auto;">
+                <div class="avatar" id="pinUserAvatarPreview" style="margin: 0 auto 12px auto; width: 64px; height: 64px; border: 2px solid var(--accent-blue);">
                     <i data-lucide="user"></i>
                 </div>
-                <h3 id="pinGreetingName" style="font-size: 1.15rem; font-weight: 700; color: #F8FAFC;">Xin chào 👋</h3>
-                <p style="font-size: 0.85rem; color: #94A3B8; margin-top: 4px; margin-bottom: 24px;">Nhập mã PIN 4 chữ số hoặc mở bằng Face ID / Vân tay</p>
-
-                <!-- PIN Dots -->
-                <div class="pin-dots-container" id="pinDotsContainer">
+                <h3 id="pinGreetingName" style="color: var(--text-heading); font-size: 1.15rem; margin-bottom: 4px;">Xin chào 👋</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Vui lòng nhập mã PIN 4 chữ số để mở khóa</p>
+                
+                <div class="pin-dots-row">
                     <span class="pin-dot"></span>
                     <span class="pin-dot"></span>
                     <span class="pin-dot"></span>
                     <span class="pin-dot"></span>
                 </div>
 
-                <!-- Keypad 3x4 Grid (With Biometric Touch ID / Face ID Button) -->
-                <div class="pin-keypad">
-                    <button class="keypad-btn" data-key="1">1</button>
-                    <button class="keypad-btn" data-key="2">2</button>
-                    <button class="keypad-btn" data-key="3">3</button>
-                    <button class="keypad-btn" data-key="4">4</button>
-                    <button class="keypad-btn" data-key="5">5</button>
-                    <button class="keypad-btn" data-key="6">6</button>
-                    <button class="keypad-btn" data-key="7">7</button>
-                    <button class="keypad-btn" data-key="8">8</button>
-                    <button class="keypad-btn" data-key="9">9</button>
-                    <button class="keypad-btn action-key" id="btnForgotPinTrigger">Quên PIN?</button>
-                    <button class="keypad-btn" data-key="0">0</button>
-                    <button class="keypad-btn action-key" id="btnPinBackspace"><i data-lucide="delete"></i></button>
+                <!-- NUMERIC KEYPAD -->
+                <div class="pin-keypad-grid">
+                    <button type="button" class="keypad-btn" data-key="1">1</button>
+                    <button type="button" class="keypad-btn" data-key="2">2</button>
+                    <button type="button" class="keypad-btn" data-key="3">3</button>
+                    <button type="button" class="keypad-btn" data-key="4">4</button>
+                    <button type="button" class="keypad-btn" data-key="5">5</button>
+                    <button type="button" class="keypad-btn" data-key="6">6</button>
+                    <button type="button" class="keypad-btn" data-key="7">7</button>
+                    <button type="button" class="keypad-btn" data-key="8">8</button>
+                    <button type="button" class="keypad-btn" data-key="9">9</button>
+                    <button type="button" class="keypad-btn action-key" id="btnForgotPinTrigger">Quên PIN?</button>
+                    <button type="button" class="keypad-btn" data-key="0">0</button>
+                    <button type="button" class="keypad-btn" id="btnPinBackspace"><i data-lucide="delete"></i></button>
                 </div>
 
-                <!-- BIOMETRIC FACE ID / TOUCH ID QUICK BUTTON -->
-                <div style="margin-top: 20px;" id="biometricUnlockContainer">
-                    <button type="button" class="btn-block primary" id="btnBiometricUnlock" style="background: linear-gradient(135deg, #8B5CF6, #6D28D9); border-radius: 30px; padding: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                        <i data-lucide="fingerprint" style="width: 22px; height: 22px;"></i>
-                        <span>Mở Khóa Bằng Face ID / Vân Tay</span>
+                <!-- BIOMETRIC WEBAUTHN PASSKEY UNLOCK BUTTON -->
+                <div id="biometricUnlockContainer" style="display: none; margin-top: 18px;">
+                    <button type="button" class="btn-block" id="btnBiometricUnlock" style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); color: #A78BFA; padding: 12px; font-weight: 600; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <i data-lucide="fingerprint"></i> Mở Khóa Bằng Face ID / Vân Tay
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- MODAL: FORGOT PIN & EMAIL OTP RECOVERY -->
+        <!-- === MODAL: FORGOT PIN VIA EMAIL OTP === -->
         <div class="modal-overlay" id="modalForgotPin">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4><i data-lucide="key-round" style="color: #F59E0B;"></i> Khôi Phục PIN Qua Email</h4>
+                    <h4><i data-lucide="shield-alert" style="color: #F59E0B;"></i> Khôi Phục Mã PIN Bảo Mật</h4>
                     <button class="close-btn" id="closeForgotPinModal"><i data-lucide="x"></i></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Step 1: Input Registered Email -->
+                    <!-- STEP 1: ENTER RECOVERY EMAIL -->
                     <div id="stepForgotEmail">
-                        <p style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 12px;">
-                            Nhập địa chỉ Email Khôi Phục mà bạn đã đăng ký trong Hồ Sơ Cá Nhân để nhận Mã OTP xác thực:
+                        <p style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 14px;">
+                            Nhập địa chỉ <b>Email Khôi Phục</b> đã đăng ký trong hồ sơ của bạn để nhận mã OTP xác thực:
                         </p>
                         <div class="form-group">
-                            <label>Email Khôi Phục Đã Đăng Ký</label>
-                            <input type="email" id="inputForgotEmail" class="custom-input" placeholder="Ví dụ: name@gmail.com" required>
+                            <label>Email Đăng Ký Khôi Phục</label>
+                            <input type="email" id="inputForgotEmail" class="custom-input" placeholder="Ví dụ: thangvu@gmail.com" required>
                         </div>
-                        <button type="button" class="btn-block primary" id="btnSendOtpEmail" style="background: linear-gradient(135deg, #F59E0B, #D97706); font-weight: 700;">Gửi Mã OTP Xác Thực</button>
+                        <button type="button" class="btn-block primary" id="btnSendOtpEmail" style="margin-top: 14px;">Gửi Mã Xác Thực OTP</button>
                     </div>
 
-                    <!-- Step 2: Input OTP & Set New PIN (Initially hidden) -->
+                    <!-- STEP 2: ENTER OTP & NEW PIN -->
                     <div id="stepForgotOtp" style="display: none;">
-                        <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
-                            <strong style="color: #10B981; font-size: 0.88rem;">📩 Đã kích hoạt gửi Email OTP!</strong>
-                            <p style="font-size: 0.78rem; color: #CBD5E1; margin-top: 4px;">
-                                Đã yêu cầu gửi email OTP đến địa chỉ của bạn.
-                            </p>
-                        </div>
-
-                        <!-- OTP DISPLAY BOX AS A DIRECT DUAL GUARANTEE -->
-                        <div id="fallbackOtpDisplayBox" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 12px; padding: 10px; margin-bottom: 14px; text-align: center;">
-                            <span style="font-size: 0.78rem; color: #F59E0B; display: block; font-weight: 600;">💡 Mã OTP Xác Thực Trực Tiếp Của Bạn:</span>
-                            <strong id="displayOtpValue" style="font-size: 1.5rem; letter-spacing: 6px; color: #F8FAFC; display: block; margin-top: 2px;">123456</strong>
-                            <span style="font-size: 0.72rem; color: #94A3B8; display: block; margin-top: 2px;">(Nhập mã này bên dưới để đổi PIN mới ngay lập tức)</span>
+                        <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 12px; text-align: center; margin-bottom: 16px;">
+                            <span style="font-size: 0.8rem; color: #F59E0B;">Mã OTP khôi phục gửi tới email của bạn là:</span>
+                            <div id="displayOtpValue" style="font-size: 1.6rem; font-weight: 800; color: #FBBF24; letter-spacing: 6px; margin-top: 4px;">123456</div>
                         </div>
 
                         <div class="form-group">
-                            <label>Mã OTP (6 chữ số)</label>
-                            <input type="text" id="inputOtpCode" class="custom-input" placeholder="Nhập 6 số ở trên" maxlength="6" style="letter-spacing: 4px; font-weight: 700; font-size: 1.1rem; text-align: center;">
+                            <label>Nhập Mã OTP 6 Chữ Số</label>
+                            <input type="text" id="inputOtpCode" class="custom-input" placeholder="Nhập 6 số OTP ở trên" maxlength="6" style="text-align: center; font-weight: 700; letter-spacing: 4px;">
                         </div>
 
                         <div class="form-group">
-                            <label>Mã PIN 4 Số Mới</label>
-                            <input type="password" id="inputNewPinAfterOtp" class="custom-input" placeholder="Ví dụ: 1234" maxlength="4" style="letter-spacing: 4px; text-align: center;">
+                            <label>Thiết Lập Mã PIN Mới (4 chữ số)</label>
+                            <input type="password" id="inputNewPinAfterOtp" class="custom-input" placeholder="Ví dụ: 5678" maxlength="4" style="text-align: center; font-weight: 700; letter-spacing: 4px;">
                         </div>
 
-                        <button type="button" class="btn-block primary" id="btnVerifyOtpAndResetPin" style="background: linear-gradient(135deg, #10B981, #059669);">Xác Nhận OTP & Tạo PIN Mới</button>
+                        <button type="button" class="btn-block primary" id="btnVerifyOtpAndResetPin" style="margin-top: 14px;">Xác Nhận & Đổi PIN Mới</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- MODAL: USER GUIDE (HDSD) - COMPLETE ALL 6 SECTIONS WITH STICKY FOOTER BUTTON -->
+        <!-- === MODAL: USER GUIDE (HDSD) === -->
         <div class="modal-overlay" id="modalUserGuide">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4><i data-lucide="book-open" style="color: #3B82F6;"></i> Hướng Dẫn Sử Dụng App</h4>
+                    <h4><i data-lucide="book-open" style="color: #3B82F6;"></i> Hướng Dẫn Sử Dụng</h4>
                     <button class="close-btn" id="closeGuideModal"><i data-lucide="x"></i></button>
                 </div>
-                <div class="modal-body" style="font-size: 0.88rem; line-height: 1.5; color: #CBD5E1; padding-bottom: 20px;">
-                    <div style="margin-bottom: 16px; background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3B82F6; padding: 12px; border-radius: 8px;">
-                        <strong style="color: #F8FAFC;">💡 Triết lý ứng dụng:</strong><br>
-                        Quản lý tài chính cá nhân thông minh theo **Quy tắc 50/30/20** kết hợp phương pháp **Phân Bổ Thặng Dư Ròng** vào các mục tiêu dài hạn.
+                <div class="modal-body" style="padding-top: 8px;">
+                    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 14px; padding: 12px; margin-bottom: 16px;">
+                        <strong style="color: #60A5FA; font-size: 0.9rem;">Chào mừng bạn đến với Ứng Dụng Quản Lý Tài Chính Cá Nhân V4/V5!</strong>
+                        <p style="font-size: 0.8rem; color: #94A3B8; margin-top: 4px; margin-bottom: 0;">
+                            Hệ thống tài chính cá nhân toàn diện theo phương pháp <b>50/30/20</b>, quản lý số dư thực tế, phân bổ thặng dư ròng và bảo mật sinh trắc học.
+                        </p>
                     </div>
 
-                    <h5 style="color: #3B82F6; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">1. Quy Tắc 50/30/20</h5>
-                    <p style="margin-bottom: 10px;">
-                        • <strong>50% Thiết yếu:</strong> Tiền nhà, điện nước, ăn uống cơ bản, đi lại.<br>
-                        • <strong>30% Mong muốn:</strong> Giải trí, mua sắm cá nhân, cà phê, du lịch.<br>
-                        • <strong>20% Tiết kiệm & Đầu tư:</strong> Quỹ dự phòng, chứng khoán, tích lũy.
-                    </p>
-
-                    <h5 style="color: #10B981; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">2. Phân Bổ Thặng Dư Ròng</h5>
-                    <p style="margin-bottom: 10px;">
-                        • Cuối mỗi tháng, nếu <strong>Thu Nhập > Chi Tiêu</strong>, trang Tổng Quan sẽ xuất hiện Thẻ Thặng Dư Ròng.<br>
-                        • Nhấn <strong>"Phân Bổ Vào Mục Tiêu Ngay"</strong> để chia số tiền dư đó vào các mục tiêu như <em>Quỹ dự phòng, Mua xe, Mua nhà...</em>
-                    </p>
-
-                    <h5 style="color: #F59E0B; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">3. Quản Lý Ví & Số Dư Đầu Kỳ</h5>
-                    <p style="margin-bottom: 10px;">
-                        • Vào tab <strong>Ví & Số Dư</strong> ➔ Bấm <strong>Quản Lý Ví & Đầu Kỳ</strong>.<br>
-                        • Tại đây bạn có thể <em>Thêm ví mới, Đổi tên ngân hàng, Nhập số dư đầu kỳ (kể cả 0đ) hoặc Xóa ví</em>.
-                    </p>
-
-                    <h5 style="color: #8B5CF6; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">4. Ghi Chép Giao Dịch (Sửa / Xóa)</h5>
-                    <p style="margin-bottom: 10px;">
-                        • Bấm nút <strong>+</strong> ở giữa để thêm giao dịch thu/chi mới.<br>
-                        • Trong tab <strong>Giao Dịch</strong>, mỗi dòng đều có nút <strong>Sửa</strong> và <strong>Xóa</strong> để điều chỉnh nếu có sai sót.
-                    </p>
-
-                    <h5 style="color: #06B6D4; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">5. Tra Cứu & Thống Kê Từ Khóa</h5>
-                    <p style="margin-bottom: 10px;">
-                        • Tại tab <strong>Giao Dịch</strong>, gõ tên nhà hàng, đối tác hoặc ghi chú vào ô Tìm Kiếm.<br>
-                        • App tự động lọc danh sách và <strong>tính tổng tiền thu/chi theo từ khóa đó</strong> lập tức.
-                    </p>
-
-                    <h5 style="color: #EC4899; margin-top: 14px; margin-bottom: 6px; font-size: 0.95rem;">6. Cài Đặt Màn Hình Chính (Add to Home Screen)</h5>
-                    <p style="margin-bottom: 10px;">
-                        • <strong>Trên iPhone (Safari):</strong> Bấm biểu tượng <em>Chia sẻ (Share)</em> ➔ Chọn <strong>Add to Home Screen (Thêm vào Màn hình chính)</strong>.<br>
-                        • <strong>Trên Android (Chrome):</strong> Bấm dấu 3 chấm ➔ Chọn <strong>Cài đặt ứng dụng (Thêm vào Màn hình chính)</strong>.
-                    </p>
+                    <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.83rem; color: #E2E8F0;">
+                        <div style="border-left: 3px solid #3B82F6; padding-left: 10px;">
+                            <strong style="color: #F8FAFC;">1. Cài Đặt Hồ Sơ & Bảo Mật Khóa PIN:</strong>
+                            <p style="color: #94A3B8; margin-top: 2px; margin-bottom: 0;">Bấm vào Ảnh đại diện ở góc trên bên trái để đổi Tên, Đổi Ảnh Avatar và Bật Khóa PIN 4 số cùng xác thực Face ID / Vân tay.</p>
+                        </div>
+                        <div style="border-left: 3px solid #10B981; padding-left: 10px;">
+                            <strong style="color: #F8FAFC;">2. Thêm Giao Dịch Thu / Chi:</strong>
+                            <p style="color: #94A3B8; margin-top: 2px; margin-bottom: 0;">Bấm nút <b>(+)</b> màu xanh ở giữa màn hình hoặc góc trên. Chọn loại (Chi Tiêu hoặc Thu Nhập), nhập số tiền và chọn danh mục.</p>
+                        </div>
+                        <div style="border-left: 3px solid #F59E0B; padding-left: 10px;">
+                            <strong style="color: #F8FAFC;">3. Phân Bổ Ngân Sách 50/30/20:</strong>
+                            <p style="color: #94A3B8; margin-top: 2px; margin-bottom: 0;">Hệ thống tự động tính toán tỷ lệ: 50% Thiết yếu, 30% Mong muốn, 20% Tiết kiệm & Đầu tư dựa trên tổng thu nhập.</p>
+                        </div>
+                        <div style="border-left: 3px solid #8B5CF6; padding-left: 10px;">
+                            <strong style="color: #F8FAFC;">4. Phân Bổ Thặng Dư Ròng Vào Mục Tiêu:</strong>
+                            <p style="color: #94A3B8; margin-top: 2px; margin-bottom: 0;">Khi có tiền dư cuối kỳ (Thu > Chi), thẻ Thặng Dư Ròng sẽ xuất hiện cho phép chuyển thẳng tiền dư vào các Mục Tiêu Dài Hạn.</p>
+                        </div>
+                        <div style="border-left: 3px solid #EC4899; padding-left: 10px;">
+                            <strong style="color: #F8FAFC;">5. Quản Lý Ví & Số Dư Đầu Kỳ:</strong>
+                            <p style="color: #94A3B8; margin-top: 2px; margin-bottom: 0;">Vào tab <b>Ví & Số Dư</b> ➔ Bấm <b>Sửa Ví & Đầu Kỳ</b> để thay đổi số dư ban đầu, thêm/sửa tên tài khoản ngân hàng tùy thích.</p>
+                        </div>
+                        <div style="border-left: 3px solid #6366F1; padding-left: 10px;">
+                            <strong style="color: #F8FAFC;">6. Đặt Lại Dữ Liệu Ban Đầu:</strong>
+                            <p style="color: #94A3B8; margin-top: 2px; margin-bottom: 0;">Bấm nút xoay vòng (↺) ở góc trên bên phải khi muốn xóa sạch dữ liệu thử nghiệm để bắt đầu ghi chép chính thức.</p>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-block primary" id="btnCloseGuideBottom" style="margin: 0; font-size: 0.95rem; font-weight: 700; padding: 12px; background: linear-gradient(135deg, #3B82F6, #1D4ED8);">Đã Hiểu & Bắt Đầu Sử Dụng</button>
+                    <button class="btn-block primary" id="btnCloseGuideBottom">Đã Hiểu & Bắt Đầu Sử Dụng</button>
                 </div>
             </div>
         </div>
 
-        <!-- MODAL: USER PROFILE, AVATAR, PIN & BIOMETRICS SETTINGS -->
+        <!-- === MODAL: AI SMART RECEIPT & BANKING SCANNER (DEMO) === -->
+        <div class="modal-overlay" id="modalAiScanner">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i data-lucide="sparkles" style="color: #60A5FA;"></i> Trợ Lý AI Quét Hóa Đơn (Demo)</h4>
+                    <button class="close-btn" id="closeAiScannerModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body" style="padding-top: 12px;">
+                    <!-- PRESET BILL SELECTION ROW -->
+                    <div style="margin-bottom: 12px;">
+                        <span style="font-size: 0.8rem; color: #94A3B8; display: block; margin-bottom: 8px;">Chọn mẫu hóa đơn thử nghiệm:</span>
+                        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;">
+                            <button type="button" class="preset-bill-btn active" data-preset="highlands">☕ Highlands 145k</button>
+                            <button type="button" class="preset-bill-btn" data-preset="vcb">🏦 Chuyển VCB 2.5Tr</button>
+                            <button type="button" class="preset-bill-btn" data-preset="winmart">🛒 WinMart 320k</button>
+                            <button type="button" class="preset-bill-btn" id="btnUploadCustomBill"><i data-lucide="upload" style="width: 13px; height: 13px;"></i> Ảnh Thật</button>
+                        </div>
+                        <input type="file" id="inputCustomBillFile" accept="image/*" style="display: none;">
+                    </div>
+
+                    <!-- SCANNER VIEWPORT WITH ANIMATED LASER -->
+                    <div class="scanner-viewport" id="scannerViewport">
+                        <div class="scanner-laser-line" id="scannerLaser"></div>
+                        <img id="scannerPreviewImg" src="" alt="Hóa đơn" class="scanner-preview-img">
+                    </div>
+
+                    <!-- AI SCAN STATUS BADGE -->
+                    <div style="text-align: center; margin-bottom: 14px;">
+                        <span class="ai-pill-badge" id="aiScanStatusBadge">
+                            <span class="pulse-dot"></span> Đang nhận diện dữ liệu bằng AI...
+                        </span>
+                    </div>
+
+                    <!-- AI EXTRACTED TRANSACTION PREVIEW CARD -->
+                    <div id="aiExtractedPreviewCard" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 16px; padding: 14px; margin-bottom: 6px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 0.78rem; color: #94A3B8;">Tổng Tiền Nhận Diện</span>
+                            <strong id="aiExtractedAmount" style="color: #EF4444; font-size: 1.3rem; font-weight: 800;">145.000 ₫</strong>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div style="background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 10px;">
+                                <span style="font-size: 0.7rem; color: #94A3B8; display: block;">Danh Mục & Nhóm</span>
+                                <strong id="aiExtractedCategory" style="color: #60A5FA; font-size: 0.82rem;">Ăn tiệm & Cà phê</strong>
+                                <div id="aiExtractedRuleGroup" style="font-size: 0.68rem; color: #A78BFA;">Mong muốn (30%)</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 10px;">
+                                <span style="font-size: 0.7rem; color: #94A3B8; display: block;">Ví Thanh Toán</span>
+                                <strong id="aiExtractedAccount" style="color: #34D399; font-size: 0.82rem;">Ví MoMo</strong>
+                                <div id="aiExtractedDateTime" style="font-size: 0.68rem; color: #94A3B8;">10/08/2026 10:30</div>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 10px;">
+                            <span style="font-size: 0.7rem; color: #94A3B8; display: block;">Diễn Giải / Đối Tác</span>
+                            <div id="aiExtractedNote" style="color: #F8FAFC; font-size: 0.82rem; font-weight: 500;">Highlands Coffee - 2 Trà Sen Vàng</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-block primary" id="btnConfirmAiTransaction" style="background: linear-gradient(135deg, #10B981, #059669);"><i data-lucide="check-circle"></i> Xác Nhận & Lưu Vào Sổ Thu Chi</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- === MODAL: USER PROFILE, AVATAR & PASSKEY SETUP === -->
         <div class="modal-overlay" id="modalProfile">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4><i data-lucide="shield-check" style="color: #3B82F6;"></i> Hồ Sơ Cá Nhân & Bảo Mật</h4>
+                    <h4><i data-lucide="user-check"></i> Hồ Sơ & Cài Đặt Bảo Mật</h4>
                     <button class="close-btn" id="closeProfileModal"><i data-lucide="x"></i></button>
                 </div>
-                <div class="modal-body" style="text-align: center;">
-                    <!-- Avatar Upload Picker Container -->
-                    <div class="avatar-upload-box" id="btnTriggerAvatarUpload">
-                        <div class="avatar-large" id="profileAvatarPreview">
+                <div class="modal-body">
+                    <!-- AVATAR UPLOAD CONTAINER -->
+                    <div class="avatar-upload-box" style="text-align: center; margin-bottom: 18px;">
+                        <div class="avatar-big" id="profileAvatarPreview" style="margin: 0 auto 10px auto; width: 78px; height: 78px;">
                             <i data-lucide="user"></i>
                         </div>
-                        <div class="avatar-badge"><i data-lucide="camera"></i></div>
+                        <button type="button" class="btn-sm secondary" id="btnTriggerAvatarUpload"><i data-lucide="camera"></i> Chọn Ảnh Đại Diện</button>
+                        <input type="file" id="inputAvatarFile" accept="image/*" style="display: none;">
                     </div>
-                    <input type="file" id="inputAvatarFile" accept="image/*" style="display: none;">
-                    <p style="font-size: 0.78rem; color: #94A3B8; margin-top: 6px;">Nhấn vào hình để chọn ảnh từ thư viện iPhone / Máy tính</p>
 
-                    <div class="form-group" style="text-align: left; margin-top: 14px;">
-                        <label>Tên hiển thị của bạn</label>
-                        <input type="text" id="inputUserName" class="custom-input" placeholder="Nhập tên của bạn...">
+                    <div class="form-group" style="text-align: left;">
+                        <label>Tên Người Dùng</label>
+                        <input type="text" id="inputUserName" class="custom-input" placeholder="Ví dụ: Thắng Vũ" required>
                     </div>
 
                     <div class="form-group" style="text-align: left;">
@@ -515,37 +567,48 @@
                 <form id="formAddTx" class="modal-body">
                     <input type="hidden" id="editingTxId" value="">
 
+                    <!-- QUICK AI SCAN LAUNCHER INSIDE TRANSACTION FORM -->
+                    <div style="margin-bottom: 14px;">
+                        <button type="button" id="btnTriggerAiScanFromAdd" class="btn-sm" style="width: 100%; justify-content: center; background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2)); border: 1px solid rgba(59, 130, 246, 0.4); color: #60A5FA; padding: 10px; border-radius: 12px; font-weight: 600;">
+                            <i data-lucide="sparkles"></i> Quét Hóa Đơn Tự Động Bằng AI (Demo)
+                        </button>
+                    </div>
+
                     <div class="form-group">
                         <label>Loại giao dịch</label>
                         <div class="segmented-control">
-                            <input type="radio" name="txType" value="expense" id="typeExpense" checked>
-                            <label for="typeExpense" class="segment expense">Chi Tiêu</label>
-                            <input type="radio" name="txType" value="income" id="typeIncome">
-                            <label for="typeIncome" class="segment income">Thu Nhập</label>
+                            <label class="segment-btn">
+                                <input type="radio" name="txType" value="expense" id="typeExpense" checked>
+                                <span><i data-lucide="arrow-up-right"></i> Chi Tiêu</span>
+                            </label>
+                            <label class="segment-btn">
+                                <input type="radio" name="txType" value="income" id="typeIncome">
+                                <span><i data-lucide="arrow-down-left"></i> Thu Nhập</span>
+                            </label>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label>Số tiền (VNĐ)</label>
-                        <input type="number" id="txAmount" class="custom-input" placeholder="Ví dụ: 150000" required min="1" step="any">
+                        <label>Số tiền (VNĐ) <span style="color: #EF4444;">*</span></label>
+                        <input type="number" id="txAmount" class="custom-input amount-input" placeholder="0" required min="1" step="any">
                     </div>
 
                     <div class="form-group">
                         <label>Danh mục</label>
                         <select id="txCategory" class="custom-select" required>
-                            <!-- Dynamically loaded -->
+                            <!-- Loaded dynamically -->
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label>Phân loại (Tự động theo 50/30/20)</label>
-                        <input type="text" id="txRuleGroup" class="custom-input disabled-input" readonly placeholder="Tự động nhảy nhóm...">
+                        <label>Nhóm Quy Tắc 50/30/20</label>
+                        <input type="text" id="txRuleGroup" class="custom-input" readonly style="background: rgba(255, 255, 255, 0.05); color: #94A3B8;">
                     </div>
 
                     <div class="form-group">
-                        <label>Tài khoản / Ví</label>
+                        <label>Tài khoản / Ví thanh toán</label>
                         <select id="txAccount" class="custom-select" required>
-                            <!-- Dynamically loaded -->
+                            <!-- Loaded dynamically -->
                         </select>
                     </div>
 
