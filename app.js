@@ -1604,12 +1604,13 @@ function preprocessImageForOcr(imgSrc) {
                     const r = d[i];
                     const g = d[i+1];
                     const b = d[i+2];
-                    const maxC = Math.max(r, g, b);
-                    const minC = Math.min(r, g, b);
-                    const sat = maxC - minC;
-                    
-                    // Text is either dark (black/gray) OR colored (green income text, red expense text, blue badges)
-                    if (maxC < 190 || (sat > 20 && maxC < 248)) {
+
+                    const isGreenText = (g > 100 && g > r * 1.15 && g > b * 1.15);
+                    const isDarkText = (r < 125 && g < 125 && b < 125);
+                    const isRedText = (r > 130 && r > g * 1.35 && r > b * 1.35);
+                    const isBlueText = (b > 130 && b > r * 1.2 && b > g * 1.1);
+
+                    if (isGreenText || isDarkText || isRedText || isBlueText) {
                         d[i] = 0;
                         d[i+1] = 0;
                         d[i+2] = 0;
@@ -1637,7 +1638,7 @@ async function performRealOcrOnImage(imgSrc, onProgress) {
     }
     try {
         const processedUrl = await preprocessImageForOcr(imgSrc);
-        let res = await window.Tesseract.recognize(processedUrl, 'vie+eng', {
+        let res = await window.Tesseract.recognize(processedUrl, 'eng', {
             logger: (m) => {
                 if (m.status === 'recognizing text' && typeof onProgress === 'function') {
                     onProgress(Math.round(m.progress * 100));
@@ -1647,9 +1648,9 @@ async function performRealOcrOnImage(imgSrc, onProgress) {
         let text = res?.data?.text || '';
         
         // If processed text is short, fallback to recognizing raw original image
-        if (!text || text.trim().length < 10) {
+        if (!text || text.trim().length < 8) {
             try {
-                const rawRes = await window.Tesseract.recognize(imgSrc, 'vie+eng');
+                const rawRes = await window.Tesseract.recognize(imgSrc, 'eng');
                 if (rawRes?.data?.text && rawRes.data.text.trim().length > text.trim().length) {
                     text = rawRes.data.text;
                 }
@@ -1659,7 +1660,7 @@ async function performRealOcrOnImage(imgSrc, onProgress) {
         }
         return text;
     } catch(e) {
-        console.warn("Tesseract OCR fallback note:", e);
+        console.warn("Tesseract OCR error note:", e);
         return null;
     }
 }
