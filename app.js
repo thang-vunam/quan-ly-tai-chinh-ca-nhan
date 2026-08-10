@@ -1399,6 +1399,14 @@ const PRESET_RECEIPTS = {
         accountName: 'Ví MoMo / ViettelPay',
         accountId: 'acc-4',
         date: new Date().toISOString().split('T')[0],
+        time: '10:30',
+        note: 'Highlands Coffee - 2 Trà Sen Vàng Cỡ Lớn',
+        statusText: 'Đã nhận diện hóa đơn F&B Highlands Coffee'
+    }
+};
+
+let currentAiScannedTx = null;
+
 function populateAiScannerDropdowns(selectedType = 'expense', selectedCatName = null, selectedAccId = null) {
     const catSelect = document.getElementById('aiSelectCategory');
     const accSelect = document.getElementById('aiSelectAccount');
