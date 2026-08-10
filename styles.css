@@ -681,33 +681,76 @@ body {
 
 .segmented-control {
     display: flex;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 4px;
-    border-radius: 12px;
-    border: 1px solid var(--border-card);
+    background: rgba(0, 0, 0, 0.4);
+    padding: 5px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 8px;
 }
 
-.segmented-control input[type="radio"] { display: none; }
-
-.segment {
+.segmented-control .segment-btn {
     flex: 1;
-    text-align: center;
-    padding: 8px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    border-radius: 8px;
-    color: var(--text-muted);
     cursor: pointer;
-    transition: all 0.2s ease;
+    margin: 0;
+    user-select: none;
 }
 
-.segmented-control input[type="radio"]:checked + .segment {
-    background: rgba(255, 255, 255, 0.12);
-    color: var(--text-heading);
+.segmented-control .segment-btn input[type="radio"] {
+    display: none;
 }
 
-.segmented-control input[type="radio"]:checked + .segment.income { background: #10B981; color: #FFFFFF; }
-.segmented-control input[type="radio"]:checked + .segment.expense { background: #EF4444; color: #FFFFFF; }
+.segmented-control .segment-btn span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    border-radius: 10px;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid transparent;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.segmented-control .segment-btn span i {
+    width: 17px;
+    height: 17px;
+    transition: transform 0.2s ease;
+}
+
+/* EXPENSE SELECTED STATE: VIBRANT NEON CORAL RED */
+.segmented-control .segment-btn input[value="expense"]:checked + span {
+    background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+    color: #FFFFFF !important;
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.45);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+}
+
+.segmented-control .segment-btn input[value="expense"]:checked + span i {
+    transform: rotate(45deg);
+}
+
+/* INCOME SELECTED STATE: VIBRANT EMERALD GREEN */
+.segmented-control .segment-btn input[value="income"]:checked + span {
+    background: linear-gradient(135deg, #10B981, #059669) !important;
+    color: #FFFFFF !important;
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.45);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+}
+
+.segmented-control .segment-btn input[value="income"]:checked + span i {
+    transform: rotate(-45deg);
+}
+
+.segmented-control .segment-btn:not(:has(:checked)) span:active {
+    background: rgba(255, 255, 255, 0.08);
+}
 
 .disabled-input {
     opacity: 0.6;
