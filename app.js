@@ -1574,7 +1574,7 @@ function initAiScannerSystem() {
     }
 }
 
-// PREPROCESS IMAGE FOR OCR (RESIZE & HIGH CONTRAST BINARIZATION)
+// PREPROCESS IMAGE FOR OCR (RESIZE & HIGH CONTRAST BINARIZATION PRESERVING GREEN/RED/BLUE TEXT)
 function preprocessImageForOcr(imgSrc) {
     return new Promise((resolve) => {
         const img = new Image();
@@ -1583,7 +1583,7 @@ function preprocessImageForOcr(imgSrc) {
             try {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                const maxDim = 1000;
+                const maxDim = 1200;
                 let w = img.naturalWidth || img.width || 600;
                 let h = img.naturalHeight || img.height || 800;
                 if (w > maxDim || h > maxDim) {
@@ -1601,14 +1601,26 @@ function preprocessImageForOcr(imgSrc) {
                 const imgData = ctx.getImageData(0, 0, w, h);
                 const d = imgData.data;
                 for (let i = 0; i < d.length; i += 4) {
-                    const gray = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
-                    const v = gray > 140 ? 255 : (gray < 80 ? 0 : gray);
-                    d[i] = v;
-                    d[i+1] = v;
-                    d[i+2] = v;
+                    const r = d[i];
+                    const g = d[i+1];
+                    const b = d[i+2];
+                    const maxC = Math.max(r, g, b);
+                    const minC = Math.min(r, g, b);
+                    const sat = maxC - minC;
+                    
+                    // Text is either dark (black/gray) OR colored (green income text, red expense text, blue badges)
+                    if (maxC < 190 || (sat > 20 && maxC < 248)) {
+                        d[i] = 0;
+                        d[i+1] = 0;
+                        d[i+2] = 0;
+                    } else {
+                        d[i] = 255;
+                        d[i+1] = 255;
+                        d[i+2] = 255;
+                    }
                 }
                 ctx.putImageData(imgData, 0, 0);
-                resolve(canvas.toDataURL('image/jpeg', 0.85));
+                resolve(canvas.toDataURL('image/jpeg', 0.9));
             } catch(e) {
                 resolve(imgSrc);
             }
@@ -1625,14 +1637,27 @@ async function performRealOcrOnImage(imgSrc, onProgress) {
     }
     try {
         const processedUrl = await preprocessImageForOcr(imgSrc);
-        const res = await window.Tesseract.recognize(processedUrl, 'vie+eng', {
+        let res = await window.Tesseract.recognize(processedUrl, 'vie+eng', {
             logger: (m) => {
                 if (m.status === 'recognizing text' && typeof onProgress === 'function') {
                     onProgress(Math.round(m.progress * 100));
                 }
             }
         });
-        return res?.data?.text || '';
+        let text = res?.data?.text || '';
+        
+        // If processed text is short, fallback to recognizing raw original image
+        if (!text || text.trim().length < 10) {
+            try {
+                const rawRes = await window.Tesseract.recognize(imgSrc, 'vie+eng');
+                if (rawRes?.data?.text && rawRes.data.text.trim().length > text.trim().length) {
+                    text = rawRes.data.text;
+                }
+            } catch(e2) {
+                console.log("Raw OCR note:", e2);
+            }
+        }
+        return text;
     } catch(e) {
         console.warn("Tesseract OCR fallback note:", e);
         return null;
@@ -1712,28 +1737,32 @@ function parseRealReceiptOcrOutput(text, fileName = '') {
     const hasPlusMoney = /\+\s*(?:VND|vnd|VNĐ|vnđ|đ|₫)?\s*[0-9]/.test(clean);
     const hasMinusMoney = /-\s*(?:VND|vnd|VNĐ|vnđ|đ|₫)?\s*[0-9]/.test(clean);
 
+    const isToUser = /to account[:\s\n\r]*vu nam thang/i.test(clean);
+    const isFromUser = /from account[:\s\n\r]*vu nam thang/i.test(clean);
+
     const isIncome = 
         hasPlusMoney ||
+        (isToUser && !isFromUser) ||
         lower.includes('nhận tiền') ||
         lower.includes('báo có') ||
         lower.includes('tiền vào') ||
         lower.includes('cộng tiền') ||
-        lower.includes('to account: vu nam thang') ||
-        lower.includes('to account vu nam thang') ||
         lower.includes('thu nhập') ||
         lower.includes('lương');
 
     const isExpense = 
         hasMinusMoney ||
+        (isFromUser && !isToUser) ||
         lower.includes('báo nợ') ||
         lower.includes('thanh toán') ||
         lower.includes('chi tiền') ||
         lower.includes('hóa đơn') ||
         lower.includes('chuyển đi') ||
-        lower.includes('mua sắm') ||
-        lower.includes('from account');
+        lower.includes('mua sắm');
 
     if (isIncome && !isExpense) {
+        type = 'income';
+    } else if (isIncome && hasPlusMoney) {
         type = 'income';
     }
 
