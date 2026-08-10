@@ -34,17 +34,35 @@
                     <i data-lucide="user"></i>
                 </div>
                 <div>
-                    <span class="greeting">Xin chào 👋</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span class="greeting">Xin chào 👋</span>
+                        <span id="badgeUserPlan" class="badge" style="background: rgba(245, 158, 11, 0.2); color: #F59E0B; font-size: 0.68rem; padding: 2px 6px; border-radius: 6px; cursor: pointer;">🎁 7 Ngày Free</span>
+                    </div>
                     <h2 class="user-name" id="headerUserName">Tài Chính Cá Nhân</h2>
                 </div>
             </div>
             <div class="top-actions">
-                <button class="icon-btn" id="btnOpenAiScannerTop" title="Quét Hóa Đơn AI (Demo)"><i data-lucide="scan-line" style="color: #60A5FA;"></i></button>
+                <button class="icon-btn" id="btnOpenVipHubTop" title="Trung tâm cá nhân hóa VIP" style="display: none; background: rgba(139, 92, 246, 0.2); color: #A78BFA; border: 1px solid rgba(139, 92, 246, 0.4);"><i data-lucide="sparkles"></i></button>
+                <button class="icon-btn" id="btnOpenAiScannerTop" title="Quét Hóa Đơn AI"><i data-lucide="scan-line" style="color: #60A5FA;"></i></button>
                 <button class="icon-btn" id="btnOpenGuideModal" title="Hướng dẫn sử dụng"><i data-lucide="help-circle"></i></button>
                 <button class="icon-btn" id="btnResetData" title="Đặt lại dữ liệu ban đầu"><i data-lucide="rotate-ccw"></i></button>
                 <button class="icon-btn" id="btnQuickAddTop" title="Thêm giao dịch mới"><i data-lucide="plus"></i></button>
             </div>
         </header>
+
+        <!-- MONETIZATION TESTING SANDBOX BAR (1-TAP STATE SWITCHER) -->
+        <div id="testSandboxBar" style="background: rgba(30, 41, 59, 0.95); border-bottom: 1px solid rgba(59, 130, 246, 0.3); padding: 8px 12px; font-size: 0.75rem; display: flex; align-items: center; justify-content: space-between; gap: 6px; overflow-x: auto; flex-shrink: 0; -webkit-overflow-scrolling: touch;">
+            <div style="display: flex; align-items: center; gap: 4px; color: #60A5FA; font-weight: 700; white-space: nowrap;">
+                <i data-lucide="flask-conical" style="width: 14px; height: 14px;"></i> TEST SANDBOX:
+            </div>
+            <div style="display: flex; gap: 5px; flex-wrap: nowrap; white-space: nowrap;">
+                <button class="btn-sm" onclick="setSandboxState('trial')" style="background: rgba(245, 158, 11, 0.2); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 8px; font-size: 0.7rem;">⏱️ 7 Ngày Free</button>
+                <button class="btn-sm" onclick="setSandboxState('expired')" style="background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 8px; font-size: 0.7rem;">🔒 Hết Hạn</button>
+                <button class="btn-sm" onclick="setSandboxState('lifetime')" style="background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.4); padding: 4px 8px; font-size: 0.7rem;">💎 Trọn Đời (499k)</button>
+                <button class="btn-sm" onclick="setSandboxState('vip')" style="background: rgba(139, 92, 246, 0.2); color: #A78BFA; border: 1px solid rgba(139, 92, 246, 0.4); padding: 4px 8px; font-size: 0.7rem;">👑 VIP (3 lượt)</button>
+                <button class="btn-sm" onclick="setSandboxState('super_vip')" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 8px; font-size: 0.7rem;">🚀 Super VIP (10 lượt)</button>
+            </div>
+        </div>
 
         <!-- Main Scrollable Application Content -->
         <main class="main-content">
@@ -727,6 +745,187 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-block primary" id="btnConfirmSurplusAllocation" style="background: linear-gradient(135deg, #10B981, #059669);">Xác Nhận Phân Bổ Vào Mục Tiêu</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- === MODAL: 5-TIER PAYWALL & UPGRADE SELECTOR === -->
+        <div class="modal-overlay" id="modalPaywall">
+            <div class="modal-content" style="max-height: 90vh;">
+                <div class="modal-header">
+                    <h4 style="color: #F8FAFC;"><i data-lucide="crown" style="color: #F59E0B;"></i> Nâng Cấp Bản Quyền Pro</h4>
+                    <button class="close-btn" id="closePaywallModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body" style="padding-top: 8px;">
+                    <div id="paywallNoticeBox" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15)); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 14px; padding: 12px; margin-bottom: 14px; text-align: center;">
+                        <strong style="color: #F59E0B; font-size: 0.9rem;" id="paywallNoticeTitle">🎁 Bạn đang dùng thử 7 ngày miễn phí</strong>
+                        <p style="font-size: 0.78rem; color: #94A3B8; margin-top: 4px; margin-bottom: 0;" id="paywallNoticeSub">Nâng cấp để mở khóa tính năng AI không giới hạn & bảo toàn dữ liệu trọn đời!</p>
+                    </div>
+
+                    <!-- 5 PRICING TIERS GRID -->
+                    <div class="pricing-tier-list" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- TIER 1: 1 THÁNG -->
+                        <div class="pricing-card" data-plan="monthly" data-price="29000" onclick="selectPricingPlan('monthly')">
+                            <div class="pricing-card-header">
+                                <div>
+                                    <strong class="pricing-card-title">☕ Gói 1 Tháng</strong>
+                                    <span class="pricing-card-desc">Rẻ hơn 1 cốc cà phê - Linh hoạt</span>
+                                </div>
+                                <div class="pricing-card-price">
+                                    <strong class="price-val">29.000 ₫</strong>
+                                    <span class="price-unit">/tháng</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TIER 2: 1 NĂM (HOT) -->
+                        <div class="pricing-card popular" data-plan="yearly" data-price="199000" onclick="selectPricingPlan('yearly')">
+                            <div class="pricing-badge">🔥 TIẾT KIỆM 45% - PHỔ BIẾN NHẤT</div>
+                            <div class="pricing-card-header">
+                                <div>
+                                    <strong class="pricing-card-title">🌟 Gói 1 Năm</strong>
+                                    <span class="pricing-card-desc">Chỉ ~500đ/ngày làm chủ tài chính</span>
+                                </div>
+                                <div class="pricing-card-price">
+                                    <strong class="price-val" style="color: #60A5FA;">199.000 ₫</strong>
+                                    <span class="price-unit">/năm</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TIER 3: TRỌN ĐỜI -->
+                        <div class="pricing-card" data-plan="lifetime" data-price="499000" onclick="selectPricingPlan('lifetime')">
+                            <div class="pricing-badge" style="background: linear-gradient(135deg, #10B981, #059669);">💎 THANH TOÁN 1 LẦN DUY NHẤT</div>
+                            <div class="pricing-card-header">
+                                <div>
+                                    <strong class="pricing-card-title">💎 Gói Trọn Đời</strong>
+                                    <span class="pricing-card-desc">Sở hữu vĩnh viễn, không lo gia hạn</span>
+                                </div>
+                                <div class="pricing-card-price">
+                                    <strong class="price-val" style="color: #10B981;">499.000 ₫</strong>
+                                    <span class="price-unit">Vĩnh viễn</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TIER 4: GÓI VIP -->
+                        <div class="pricing-card vip" data-plan="vip" data-price="999000" onclick="selectPricingPlan('vip')">
+                            <div class="pricing-badge" style="background: linear-gradient(135deg, #8B5CF6, #6366F1);">👑 ĐẶC QUYỀN 3 LẦN MAY ĐO RIÊNG</div>
+                            <div class="pricing-card-header">
+                                <div>
+                                    <strong class="pricing-card-title">👑 Gói VIP Cá Nhân Hóa</strong>
+                                    <span class="pricing-card-desc">Kèm 3 lượt yêu cầu lập trình tính năng riêng</span>
+                                </div>
+                                <div class="pricing-card-price">
+                                    <strong class="price-val" style="color: #A78BFA;">999.000 ₫</strong>
+                                    <span class="price-unit">3 lượt VIP</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TIER 5: GÓI SUPER VIP -->
+                        <div class="pricing-card super-vip" data-plan="super_vip" data-price="1999000" onclick="selectPricingPlan('super_vip')">
+                            <div class="pricing-badge" style="background: linear-gradient(135deg, #F59E0B, #EF4444);">🏆 ĐẶC QUYỀN 10 LẦN MAY ĐO RIÊNG</div>
+                            <div class="pricing-card-header">
+                                <div>
+                                    <strong class="pricing-card-title">🚀 Gói Super VIP</strong>
+                                    <span class="pricing-card-desc">Kèm 10 lượt yêu cầu lập trình tính năng riêng</span>
+                                </div>
+                                <div class="pricing-card-price">
+                                    <strong class="price-val" style="color: #F59E0B;">1.999.000 ₫</strong>
+                                    <span class="price-unit">10 lượt VIP</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-block primary" id="btnProceedPayment" style="background: linear-gradient(135deg, #3B82F6, #8B5CF6);"><i data-lucide="qr-code"></i> Tiếp Tục Thanh Toán VietQR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- === MODAL: VIETQR SEPAY BIDV PAYMENT === -->
+        <div class="modal-overlay" id="modalPaymentQr">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i data-lucide="credit-card" style="color: #10B981;"></i> Thanh Toán VietQR Tự Động</h4>
+                    <button class="close-btn" id="closePaymentQrModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body" style="text-align: center; padding-top: 8px;">
+                    <div style="font-size: 0.82rem; color: #94A3B8; margin-bottom: 8px;">Quét mã bằng bất kỳ App Ngân hàng hoặc Ví điện tử nào</div>
+                    
+                    <!-- DYNAMIC QR CODE CONTAINER -->
+                    <div id="paymentQrBox" style="background: #FFFFFF; padding: 12px; border-radius: 16px; display: inline-block; box-shadow: 0 8px 24px rgba(0,0,0,0.5); margin-bottom: 12px;">
+                        <img id="imgVietQrCode" src="" alt="VietQR BIDV SePay" style="width: 220px; height: 220px; display: block; border-radius: 8px;">
+                    </div>
+
+                    <!-- PAYMENT INFO DETAILS CARD -->
+                    <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 12px; text-align: left; font-size: 0.8rem; display: flex; flex-direction: column; gap: 6px;">
+                        <div style="display: flex; justify-content: space-between;"><span style="color: #94A3B8;">Gói cước:</span> <strong id="payPlanName" style="color: #60A5FA;">Gói 1 Năm</strong></div>
+                        <div style="display: flex; justify-content: space-between;"><span style="color: #94A3B8;">Số tiền:</span> <strong id="payAmountVnd" style="color: #10B981; font-size: 1.05rem;">199.000 ₫</strong></div>
+                        <div style="display: flex; justify-content: space-between;"><span style="color: #94A3B8;">Ngân hàng:</span> <strong style="color: #F8FAFC;">BIDV (VA Thu Hộ)</strong></div>
+                        <div style="display: flex; justify-content: space-between;"><span style="color: #94A3B8;">Số TK VA:</span> <strong style="color: #F8FAFC; letter-spacing: 1px;">96247882912NNV</strong></div>
+                        <div style="display: flex; justify-content: space-between;"><span style="color: #94A3B8;">Nội dung CK:</span> <strong id="payMemoCode" style="color: #F59E0B; letter-spacing: 1px;">TAICHINH PRO</strong></div>
+                    </div>
+
+                    <!-- SIMULATE INSTANT PAYMENT BUTTON FOR TESTING -->
+                    <div style="margin-top: 14px; padding: 10px; background: rgba(59, 130, 246, 0.1); border: 1px dashed #3B82F6; border-radius: 12px;">
+                        <div style="font-size: 0.72rem; color: #60A5FA; margin-bottom: 6px;">🧪 Chế độ Thử Nghiệm Nhanh (Không cần chuyển tiền thật):</div>
+                        <button type="button" class="btn-sm" id="btnSimulateInstantPayment" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #10B981, #059669); color: #FFF; font-weight: 700; padding: 8px;">
+                            ⚡ Giả Lập Đã Nhận Tiền & Mở Khóa Ngay
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-block secondary" id="btnCancelPayment">Đóng & Chọn Gói Khác</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- === MODAL: VIP CUSTOMIZATION REQUEST HUB === -->
+        <div class="modal-overlay" id="modalVipCustomHub">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i data-lucide="sparkles" style="color: #A78BFA;"></i> Trung Tâm Cá Nhân Hóa VIP</h4>
+                    <button class="close-btn" id="closeVipHubModal"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body" style="padding-top: 8px;">
+                    <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(245, 158, 11, 0.15)); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 14px; padding: 12px; margin-bottom: 14px; text-align: center;">
+                        <div style="font-size: 0.8rem; color: #94A3B8;">Đặc Quyền Gói VIP / Super VIP:</div>
+                        <h3 id="vipQuotaDisplay" style="color: #F59E0B; font-size: 1.2rem; margin-top: 2px;">⭐️ 3 / 3 Lượt May Đo Riêng</h3>
+                    </div>
+
+                    <form id="formSubmitVipRequest" style="display: flex; flex-direction: column; gap: 12px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>1. Tên tính năng mong muốn <span style="color: #EF4444;">*</span></label>
+                            <input type="text" id="vipReqTitle" class="custom-input" placeholder="Ví dụ: Bảng theo dõi cổ phiếu, Danh mục BĐS..." required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>2. Mô tả chi tiết cách tính toán & hiển thị <span style="color: #EF4444;">*</span></label>
+                            <textarea id="vipReqDesc" class="custom-input" rows="3" placeholder="Mô tả cụ thể các cột, công thức hoặc cách bạn muốn ứng dụng hoạt động..." required style="resize: none;"></textarea>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>3. Đính kèm mẫu phác thảo / Excel (Tùy chọn)</label>
+                            <input type="text" id="vipReqAttachment" class="custom-input" placeholder="Dán link Google Drive / Ghi chú mẫu..." style="font-size: 0.8rem;">
+                        </div>
+                        <button type="submit" class="btn-block primary" id="btnSubmitVipReq" style="background: linear-gradient(135deg, #8B5CF6, #6366F1); margin-top: 6px;">
+                            <i data-lucide="send"></i> Gửi Yêu Cầu Cho Đội Ngũ Kỹ Thuật
+                        </button>
+                    </form>
+
+                    <!-- VIP REQUEST HISTORY -->
+                    <div style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed rgba(255, 255, 255, 0.1);">
+                        <strong style="font-size: 0.85rem; color: #F8FAFC; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                            <i data-lucide="history" style="width: 15px; height: 15px; color: #60A5FA;"></i> Nhật Ký Các Yêu Cầu Đã Gửi:
+                        </strong>
+                        <div id="vipRequestHistoryList" style="display: flex; flex-direction: column; gap: 8px;">
+                            <!-- Loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-block secondary" id="btnCloseVipHubBottom">Đóng</button>
                 </div>
             </div>
         </div>
