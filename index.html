@@ -423,30 +423,36 @@
             </div>
         </div>
 
-        <!-- === MODAL: AI SMART RECEIPT & BANKING SCANNER (DEMO) === -->
+        <!-- === MODAL: AI SMART RECEIPT & QR SCANNER === -->
         <div class="modal-overlay" id="modalAiScanner">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4><i data-lucide="sparkles" style="color: #60A5FA;"></i> Trợ Lý AI Quét Hóa Đơn (Demo)</h4>
+                    <h4><i data-lucide="sparkles" style="color: #60A5FA;"></i> Quét Hóa Đơn & Mã QR Bằng AI</h4>
                     <button class="close-btn" id="closeAiScannerModal"><i data-lucide="x"></i></button>
                 </div>
                 <div class="modal-body" style="padding-top: 12px;">
+                    <!-- PROMINENT BUTTON: SCAN FROM SAVED PHOTO GALLERY / QR CODE -->
+                    <div style="margin-bottom: 12px;">
+                        <button type="button" class="btn-block" id="btnUploadCustomBillBig" style="background: linear-gradient(135deg, #3B82F6, #8B5CF6); color: #FFFFFF; font-weight: 700; font-size: 0.9rem; padding: 12px 14px; border-radius: 14px; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);">
+                            <i data-lucide="image"></i> Quét Ảnh / Mã QR Trong Kho Thư Viện
+                        </button>
+                        <input type="file" id="inputCustomBillFile" accept="image/*" style="display: none;">
+                    </div>
+
                     <!-- PRESET BILL SELECTION ROW -->
                     <div style="margin-bottom: 12px;">
-                        <span style="font-size: 0.8rem; color: #94A3B8; display: block; margin-bottom: 8px;">Chọn mẫu hóa đơn thử nghiệm:</span>
+                        <span style="font-size: 0.78rem; color: #94A3B8; display: block; margin-bottom: 6px;">Hoặc thử nhanh các mẫu có sẵn:</span>
                         <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;">
                             <button type="button" class="preset-bill-btn active" data-preset="highlands">☕ Highlands 145k</button>
                             <button type="button" class="preset-bill-btn" data-preset="vcb">🏦 Chuyển VCB 2.5Tr</button>
                             <button type="button" class="preset-bill-btn" data-preset="winmart">🛒 WinMart 320k</button>
-                            <button type="button" class="preset-bill-btn" id="btnUploadCustomBill"><i data-lucide="upload" style="width: 13px; height: 13px;"></i> Ảnh Thật</button>
                         </div>
-                        <input type="file" id="inputCustomBillFile" accept="image/*" style="display: none;">
                     </div>
 
                     <!-- SCANNER VIEWPORT WITH ANIMATED LASER -->
                     <div class="scanner-viewport" id="scannerViewport">
                         <div class="scanner-laser-line" id="scannerLaser"></div>
-                        <img id="scannerPreviewImg" src="" alt="Hóa đơn" class="scanner-preview-img">
+                        <img id="scannerPreviewImg" src="" alt="Hóa đơn / Mã QR" class="scanner-preview-img">
                     </div>
 
                     <!-- AI SCAN STATUS BADGE -->
