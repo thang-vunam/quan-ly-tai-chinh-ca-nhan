@@ -1461,19 +1461,18 @@ function initAiScannerSystem() {
         });
     });
 
-    // CUSTOM IMAGE UPLOADER
-    const btnUpload = document.getElementById('btnUploadCustomBill');
+    // PROMINENT BUTTON: UPLOAD FROM PHOTO GALLERY / SAVED QR CODE
+    const btnUploadBig = document.getElementById('btnUploadCustomBillBig');
     const inputFile = document.getElementById('inputCustomBillFile');
-    if (btnUpload && inputFile) {
-        btnUpload.addEventListener('click', () => inputFile.click());
+    if (btnUploadBig && inputFile) {
+        btnUploadBig.addEventListener('click', () => inputFile.click());
         inputFile.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (evt) => {
                     document.querySelectorAll('.preset-bill-btn').forEach(b => b.classList.remove('active'));
-                    btnUpload.classList.add('active');
-                    triggerAiScan('custom', evt.target.result);
+                    triggerAiScan('custom', evt.target.result, file.name);
                 };
                 reader.readAsDataURL(file);
             }
@@ -1519,7 +1518,7 @@ function initAiScannerSystem() {
     }
 }
 
-function triggerAiScan(presetKey, customImgUrl = null) {
+function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
     const laser = document.getElementById('scannerLaser');
     const previewImg = document.getElementById('scannerPreviewImg');
     const statusBadge = document.getElementById('aiScanStatusBadge');
@@ -1532,16 +1531,34 @@ function triggerAiScan(presetKey, customImgUrl = null) {
 
     let data = null;
     if (presetKey === 'custom') {
+        const fn = (fileName || '').toLowerCase();
+        let guessedAmount = 185000;
+        let guessedCat = 'Ăn uống & Thực phẩm';
+        let guessedRule = 'Thiết yếu (50%)';
+        let guessedNote = 'Ảnh chụp hóa đơn / Mã QR từ kho thư viện';
+
+        if (fn.includes('qr') || fn.includes('momo') || fn.includes('vietqr')) {
+            guessedAmount = 150000;
+            guessedCat = 'Ăn tiệm & Cà phê';
+            guessedRule = 'Mong muốn (30%)';
+            guessedNote = 'Quét mã VietQR thanh toán từ ảnh đã lưu';
+        } else if (fn.includes('vcb') || fn.includes('techcom') || fn.includes('bank')) {
+            guessedAmount = 1200000;
+            guessedCat = 'Tiền nhà / Điện nước';
+            guessedRule = 'Thiết yếu (50%)';
+            guessedNote = 'Biên lai chuyển khoản ngân hàng từ thư viện ảnh';
+        }
+
         data = {
             img: customImgUrl,
-            amount: 85000,
-            category: 'Ăn uống & Thực phẩm',
-            ruleGroup: 'Thiết yếu (50%)',
+            amount: guessedAmount,
+            category: guessedCat,
+            ruleGroup: guessedRule,
             accountName: state.accounts[0]?.name || 'Tài khoản VCB',
             accountId: state.accounts[0]?.id || 'acc-1',
-            time: '12:15',
-            note: 'Ảnh chụp hóa đơn người dùng tải lên',
-            statusText: 'Đã nhận diện thành công hóa đơn tải lên'
+            time: '11:45',
+            note: guessedNote,
+            statusText: 'Đã nhận diện thành công ảnh / mã QR từ thư viện'
         };
     } else {
         data = PRESET_RECEIPTS[presetKey] || PRESET_RECEIPTS.highlands;
@@ -1553,7 +1570,7 @@ function triggerAiScan(presetKey, customImgUrl = null) {
     if (laser) laser.style.display = 'block';
 
     if (statusBadge) {
-        statusBadge.innerHTML = `<span class="pulse-dot"></span> Đang quét tia laser & bóc tách AI...`;
+        statusBadge.innerHTML = `<span class="pulse-dot"></span> Đang nhận diện hóa đơn & mã QR bằng AI...`;
         statusBadge.style.color = '#60A5FA';
         statusBadge.style.borderColor = 'rgba(59, 130, 246, 0.4)';
     }
