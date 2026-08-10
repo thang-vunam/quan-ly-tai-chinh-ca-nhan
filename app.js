@@ -1,4 +1,4 @@
-// === PERSONAL FINANCE APP V4/V5 JS LOGIC (CLEAN SAPPHIRE THEME & RESET TO DEFAULT SYSTEM) ===
+// === PERSONAL FINANCE APP V4/V5 JS LOGIC (WITH AUTO-PROMPT BIOMETRICS & PIN LOCK) ===
 
 // --- DEFAULT INITIAL STATE ---
 const DEFAULT_STATE = {
@@ -195,6 +195,13 @@ function lockAppSession(reasonMessage) {
             if (p) p.textContent = reasonMessage;
         }
         safeCreateIcons();
+
+        // Auto prompt biometrics on lock session
+        if (state.userProfile && state.userProfile.biometricEnabled && state.userProfile.biometricCredentialId) {
+            setTimeout(() => {
+                triggerBiometricUnlock(true);
+            }, 450);
+        }
     }
 }
 
@@ -221,6 +228,13 @@ function initPinLockSystem() {
                 biometricContainer.style.display = state.userProfile.biometricEnabled ? 'block' : 'none';
             }
             safeCreateIcons();
+
+            // AUTOMATICALLY CALL BIOMETRIC UNLOCK WHEN PIN SCREEN APPEARS (0 CLICKS REQUIRED)
+            if (state.userProfile.biometricEnabled && state.userProfile.biometricCredentialId) {
+                setTimeout(() => {
+                    triggerBiometricUnlock(true);
+                }, 450);
+            }
         }
     }
 
@@ -257,7 +271,7 @@ function initPinLockSystem() {
     if (btnBiometric) {
         btnBiometric.addEventListener('click', (e) => {
             e.stopPropagation();
-            triggerBiometricUnlock();
+            triggerBiometricUnlock(false);
         });
     }
 
@@ -394,12 +408,14 @@ async function registerBiometricPasskey() {
     return false;
 }
 
-// WEBAUTHN PASSKEY AUTHENTICATION LOGIC
-async function triggerBiometricUnlock() {
+// WEBAUTHN PASSKEY AUTHENTICATION LOGIC (WITH AUTO-PROMPT SUPPORT)
+async function triggerBiometricUnlock(isAutoTrigger = false) {
     const modalPin = document.getElementById('modalPinLock');
 
     if (!state.userProfile.biometricCredentialId) {
-        alert('⚠️ Bạn chưa đăng ký Face ID / Vân tay. Vui lòng nhập mã PIN 4 số ➔ Vào Hồ Sơ Cá Nhân ➔ Bật công tắc Face ID để kích hoạt 1 lần duy nhất!');
+        if (!isAutoTrigger) {
+            alert('⚠️ Bạn chưa đăng ký Face ID / Vân tay. Vui lòng nhập mã PIN 4 số ➔ Vào Hồ Sơ Cá Nhân ➔ Bật công tắc Face ID để kích hoạt 1 lần duy nhất!');
+        }
         return;
     }
 
@@ -438,7 +454,9 @@ async function triggerBiometricUnlock() {
         console.log("Biometric verification cancelled or failed:", e);
     }
 
-    alert('❌ Xác thực Face ID / Vân tay không thành công. Vui lòng nhập mã PIN 4 chữ số!');
+    if (!isAutoTrigger) {
+        alert('❌ Xác thực Face ID / Vân tay không thành công. Vui lòng nhập mã PIN 4 chữ số!');
+    }
 }
 
 function updatePinDotsUI() {
@@ -627,10 +645,12 @@ function renderChart(year) {
     state.transactions.forEach(tx => {
         if (!tx.date) return;
         const d = new Date(tx.date);
-        if (!isNaN(d.getTime()) && d.getFullYear() === year) {
-            const m = d.getMonth();
-            if (tx.type === 'income') monthlyIncome[m] += (tx.amount || 0);
-            else monthlyExpense[m] += (tx.amount || 0);
+        if (!isNaN(d.getTime())) {
+            if (d.getFullYear() === year) {
+                const m = d.getMonth();
+                if (tx.type === 'income') monthlyIncome[m] += (tx.amount || 0);
+                else monthlyExpense[m] += (tx.amount || 0);
+            }
         }
     });
 
