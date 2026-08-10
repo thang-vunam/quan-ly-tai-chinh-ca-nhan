@@ -148,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initNavigation();
         initModals();
         initAiScannerSystem();
+        initMonetizationSystem();
         initFilters();
         initSearchListeners();
         renderApp();
@@ -158,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(() => { try { renderApp(); checkFirstTimeOnboarding(); } catch(e) {} }, 100);
+    setTimeout(() => { try { renderApp(); initMonetizationSystem(); checkFirstTimeOnboarding(); } catch(e) {} }, 100);
 }
 
 // AUTOMATIC FIRST-TIME USER PROFILE POPUP
@@ -1157,6 +1158,12 @@ function initModals() {
     const closeAddTxModal = document.getElementById('closeAddTxModal');
 
     const openAddTx = () => {
+        // Intercept if trial is expired
+        if (state.userProfile.subscription && state.userProfile.subscription.status === 'expired') {
+            openPaywallModal();
+            return;
+        }
+
         document.getElementById('editingTxId').value = '';
         document.getElementById('modalTxTitle').innerHTML = '<i data-lucide="plus-circle"></i> Thêm Giao Dịch Mới';
         document.getElementById('btnSubmitTxForm').textContent = 'Lưu Giao Dịch';
@@ -1462,6 +1469,11 @@ function initAiScannerSystem() {
 
     // 1. ONE-TOUCH DIRECT PHOTO GALLERY TRIGGER (MẶC ĐỊNH MỞ THẲNG KHO THƯ VIỆN ẢNH KHI BẤM QUÉT BILL)
     const triggerDirectPhotoPick = () => {
+        if (state.userProfile.subscription && state.userProfile.subscription.status === 'expired') {
+            openPaywallModal();
+            return;
+        }
+
         const modalAddTx = document.getElementById('modalAddTx');
         if (modalAddTx) modalAddTx.classList.remove('active');
         if (inputFile) {
@@ -1888,3 +1900,395 @@ function populateAddTxCategorySelect() {
         accSelect.appendChild(opt);
     });
 }
+
+/* ==========================================================================
+   MONETIZATION & COMMERCIALIZATION SANDBOX SYSTEM (5 TIERS & SEPAY BIDV)
+   ========================================================================== */
+
+let selectedPayPlan = 'yearly';
+let activeQrPaymentAmount = 199000;
+
+function initMonetizationSystem() {
+    // 1. Initialize subscription profile if not present
+    if (!state.userProfile.subscription) {
+        state.userProfile.subscription = {
+            status: 'trial', // 'trial', 'expired', 'active'
+            plan: 'free_trial', // 'free_trial', 'monthly', 'yearly', 'lifetime', 'vip', 'super_vip'
+            trialDaysRemaining: 7,
+            vipRequestsRemaining: 0,
+            vipRequestsHistory: [],
+            paidAmount: 0
+        };
+        saveState();
+    }
+
+    renderSubscriptionBadge();
+
+    // 2. Setup Paywall Modal Handlers
+    const modalPaywall = document.getElementById('modalPaywall');
+    const closePaywallModal = document.getElementById('closePaywallModal');
+    const btnProceedPayment = document.getElementById('btnProceedPayment');
+    const badgeUserPlan = document.getElementById('badgeUserPlan');
+
+    if (badgeUserPlan) {
+        badgeUserPlan.addEventListener('click', () => openPaywallModal());
+    }
+
+    if (closePaywallModal && modalPaywall) {
+        closePaywallModal.addEventListener('click', () => modalPaywall.classList.remove('active'));
+    }
+
+    if (btnProceedPayment) {
+        btnProceedPayment.addEventListener('click', () => {
+            if (modalPaywall) modalPaywall.classList.remove('active');
+            triggerPaymentQr(selectedPayPlan);
+        });
+    }
+
+    // 3. Setup Payment QR Modal Handlers
+    const modalPaymentQr = document.getElementById('modalPaymentQr');
+    const closePaymentQrModal = document.getElementById('closePaymentQrModal');
+    const btnCancelPayment = document.getElementById('btnCancelPayment');
+    const btnSimulateInstantPayment = document.getElementById('btnSimulateInstantPayment');
+
+    if (closePaymentQrModal && modalPaymentQr) {
+        closePaymentQrModal.addEventListener('click', () => modalPaymentQr.classList.remove('active'));
+    }
+    if (btnCancelPayment && modalPaymentQr) {
+        btnCancelPayment.addEventListener('click', () => {
+            modalPaymentQr.classList.remove('active');
+            openPaywallModal(selectedPayPlan);
+        });
+    }
+
+    if (btnSimulateInstantPayment) {
+        btnSimulateInstantPayment.addEventListener('click', () => {
+            simulatePaymentSuccess(selectedPayPlan, activeQrPaymentAmount);
+        });
+    }
+
+    // 4. Setup VIP Customization Hub
+    const modalVipHub = document.getElementById('modalVipCustomHub');
+    const btnOpenVipHubTop = document.getElementById('btnOpenVipHubTop');
+    const closeVipHubModal = document.getElementById('closeVipHubModal');
+    const btnCloseVipHubBottom = document.getElementById('btnCloseVipHubBottom');
+    const formSubmitVipRequest = document.getElementById('formSubmitVipRequest');
+
+    if (btnOpenVipHubTop) {
+        btnOpenVipHubTop.addEventListener('click', () => openVipCustomHub());
+    }
+    if (closeVipHubModal && modalVipHub) {
+        closeVipHubModal.addEventListener('click', () => modalVipHub.classList.remove('active'));
+    }
+    if (btnCloseVipHubBottom && modalVipHub) {
+        btnCloseVipHubBottom.addEventListener('click', () => modalVipHub.classList.remove('active'));
+    }
+
+    if (formSubmitVipRequest) {
+        formSubmitVipRequest.addEventListener('submit', (e) => {
+            e.preventDefault();
+            submitVipFeatureRequest();
+        });
+    }
+}
+
+function renderSubscriptionBadge() {
+    const badge = document.getElementById('badgeUserPlan');
+    const vipBtn = document.getElementById('btnOpenVipHubTop');
+    if (!badge) return;
+
+    const sub = state.userProfile.subscription || { status: 'trial', plan: 'free_trial', trialDaysRemaining: 7 };
+
+    if (sub.status === 'trial') {
+        badge.innerHTML = `🎁 Dùng Thử: ${sub.trialDaysRemaining} Ngày`;
+        badge.style.background = 'rgba(245, 158, 11, 0.2)';
+        badge.style.color = '#F59E0B';
+        if (vipBtn) vipBtn.style.display = 'none';
+    } else if (sub.status === 'expired') {
+        badge.innerHTML = '🔒 Hết Hạn Dùng Thử (Nâng Cấp)';
+        badge.style.background = 'rgba(239, 68, 68, 0.25)';
+        badge.style.color = '#EF4444';
+        if (vipBtn) vipBtn.style.display = 'none';
+    } else if (sub.plan === 'monthly') {
+        badge.innerHTML = '☕ Gói 1 Tháng Pro';
+        badge.style.background = 'rgba(59, 130, 246, 0.2)';
+        badge.style.color = '#60A5FA';
+        if (vipBtn) vipBtn.style.display = 'none';
+    } else if (sub.plan === 'yearly') {
+        badge.innerHTML = '🌟 Gói 1 Năm Pro';
+        badge.style.background = 'rgba(59, 130, 246, 0.25)';
+        badge.style.color = '#38BDF8';
+        if (vipBtn) vipBtn.style.display = 'none';
+    } else if (sub.plan === 'lifetime') {
+        badge.innerHTML = '💎 Gói Trọn Đời';
+        badge.style.background = 'rgba(16, 185, 129, 0.25)';
+        badge.style.color = '#10B981';
+        if (vipBtn) vipBtn.style.display = 'none';
+    } else if (sub.plan === 'vip') {
+        badge.innerHTML = `👑 VIP [${sub.vipRequestsRemaining || 0} lượt]`;
+        badge.style.background = 'rgba(139, 92, 246, 0.25)';
+        badge.style.color = '#A78BFA';
+        if (vipBtn) vipBtn.style.display = 'inline-flex';
+    } else if (sub.plan === 'super_vip') {
+        badge.innerHTML = `🚀 Super VIP [${sub.vipRequestsRemaining || 0} lượt]`;
+        badge.style.background = 'rgba(245, 158, 11, 0.25)';
+        badge.style.color = '#FBBF24';
+        if (vipBtn) vipBtn.style.display = 'inline-flex';
+    }
+}
+
+function openPaywallModal(presetPlan = null) {
+    const modalPaywall = document.getElementById('modalPaywall');
+    if (!modalPaywall) return;
+
+    const sub = state.userProfile.subscription || {};
+    const noticeTitle = document.getElementById('paywallNoticeTitle');
+    const noticeSub = document.getElementById('paywallNoticeSub');
+
+    if (sub.status === 'expired') {
+        if (noticeTitle) noticeTitle.innerHTML = '🔒 Thời Gian Dùng Thử 7 Ngày Đã Kết Thúc';
+        if (noticeSub) noticeSub.innerHTML = 'Dữ liệu sổ sách của bạn vẫn được lưu an toàn 100%! Vui lòng chọn gói cước để tiếp tục ghi chép & quét hóa đơn AI.';
+    } else if (sub.status === 'active' && sub.plan === 'lifetime') {
+        if (noticeTitle) noticeTitle.innerHTML = '💎 Bạn Đang Sở Hữu Gói Trọn Đời (499k)';
+        if (noticeSub) noticeSub.innerHTML = 'Đặc quyền: Bạn chỉ cần đóng <b>phần tiền chênh lệch</b> để nâng cấp lên VIP hoặc Super VIP!';
+    } else {
+        if (noticeTitle) noticeTitle.innerHTML = '🎁 Bạn Đang Dùng Thử 7 Ngày Miễn Phí';
+        if (noticeSub) noticeSub.innerHTML = 'Nâng cấp ngay hôm nay để mở khóa tính năng AI không giới hạn & bảo toàn dữ liệu trọn đời!';
+    }
+
+    selectPricingPlan(presetPlan || 'yearly');
+    modalPaywall.classList.add('active');
+    safeCreateIcons();
+}
+
+function selectPricingPlan(planKey) {
+    selectedPayPlan = planKey;
+    document.querySelectorAll('.pricing-card').forEach(card => {
+        if (card.getAttribute('data-plan') === planKey) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    });
+
+    const sub = state.userProfile.subscription || {};
+    let basePrice = 199000;
+    if (planKey === 'monthly') basePrice = 29000;
+    if (planKey === 'yearly') basePrice = 199000;
+    if (planKey === 'lifetime') basePrice = 499000;
+    if (planKey === 'vip') basePrice = 999000;
+    if (planKey === 'super_vip') basePrice = 1999000;
+
+    // FAIR UPGRADE PRORATION CALCULATION:
+    let finalPrice = basePrice;
+    if (sub.status === 'active' && sub.paidAmount > 0 && basePrice > sub.paidAmount) {
+        finalPrice = basePrice - sub.paidAmount;
+    }
+
+    activeQrPaymentAmount = finalPrice;
+    const btnProceed = document.getElementById('btnProceedPayment');
+    if (btnProceed) {
+        btnProceed.innerHTML = `<i data-lucide="qr-code"></i> Thanh Toán VietQR (${formatVND(finalPrice)})`;
+        safeCreateIcons();
+    }
+}
+
+function triggerPaymentQr(planKey) {
+    const modalPaymentQr = document.getElementById('modalPaymentQr');
+    if (!modalPaymentQr) return;
+
+    const sub = state.userProfile.subscription || {};
+    let planNames = {
+        monthly: 'Gói 1 Tháng',
+        yearly: 'Gói 1 Năm (Hot)',
+        lifetime: 'Gói Trọn Đời',
+        vip: 'Gói VIP Cá Nhân Hóa (3 Lượt)',
+        super_vip: 'Gói Super VIP (10 Lượt)'
+    };
+
+    let basePrice = 199000;
+    if (planKey === 'monthly') basePrice = 29000;
+    if (planKey === 'yearly') basePrice = 199000;
+    if (planKey === 'lifetime') basePrice = 499000;
+    if (planKey === 'vip') basePrice = 999000;
+    if (planKey === 'super_vip') basePrice = 1999000;
+
+    let finalPrice = basePrice;
+    if (sub.status === 'active' && sub.paidAmount > 0 && basePrice > sub.paidAmount) {
+        finalPrice = basePrice - sub.paidAmount;
+    }
+    activeQrPaymentAmount = finalPrice;
+
+    const memo = `TAICHINH ${planKey.toUpperCase().replace('_', '')} ${Date.now().toString().slice(-4)}`;
+
+    document.getElementById('payPlanName').textContent = planNames[planKey] || 'Gói Bản Quyền';
+    document.getElementById('payAmountVnd').textContent = formatVND(finalPrice);
+    document.getElementById('payMemoCode').textContent = memo;
+
+    // GENERATE VIETQR CODE FOR BIDV VIRTUAL ACCOUNT: 96247882912NNV
+    const qrUrl = `https://img.vietqr.io/image/970418-96247882912NNV-compact2.png?amount=${finalPrice}&addInfo=${encodeURIComponent(memo)}&accountName=VU%20NAM%20THANG`;
+    const imgQr = document.getElementById('imgVietQrCode');
+    if (imgQr) imgQr.src = qrUrl;
+
+    modalPaymentQr.classList.add('active');
+    safeCreateIcons();
+}
+
+function simulatePaymentSuccess(planKey, paidAmt) {
+    if (!state.userProfile.subscription) state.userProfile.subscription = {};
+    
+    state.userProfile.subscription.status = 'active';
+    state.userProfile.subscription.plan = planKey;
+    state.userProfile.subscription.paidAmount = paidAmt;
+
+    if (planKey === 'vip') {
+        state.userProfile.subscription.vipRequestsRemaining = (state.userProfile.subscription.vipRequestsRemaining || 0) + 3;
+    } else if (planKey === 'super_vip') {
+        state.userProfile.subscription.vipRequestsRemaining = (state.userProfile.subscription.vipRequestsRemaining || 0) + 10;
+    }
+
+    saveState();
+    renderSubscriptionBadge();
+
+    const modalPaymentQr = document.getElementById('modalPaymentQr');
+    if (modalPaymentQr) modalPaymentQr.classList.remove('active');
+
+    alert(`🎉 CHÚC MỪNG BẠN!\n\nHệ thống SePay BIDV đã xác nhận thanh toán thành công ${formatVND(paidAmt)}!\nTài khoản của bạn đã được nâng cấp lên [${planKey.toUpperCase()}] trọn vẹn! 🚀`);
+}
+
+function openVipCustomHub() {
+    const modalVipHub = document.getElementById('modalVipCustomHub');
+    if (!modalVipHub) return;
+
+    const sub = state.userProfile.subscription || {};
+    const quota = sub.vipRequestsRemaining || 0;
+    const quotaDisplay = document.getElementById('vipQuotaDisplay');
+    if (quotaDisplay) {
+        quotaDisplay.innerHTML = `⭐️ ${quota} Lượt Yêu Cầu May Đo Tính Năng Còn Lại`;
+    }
+
+    renderVipRequestHistory();
+    modalVipHub.classList.add('active');
+    safeCreateIcons();
+}
+
+function submitVipFeatureRequest() {
+    const sub = state.userProfile.subscription || {};
+    let quota = sub.vipRequestsRemaining || 0;
+
+    if (quota <= 0) {
+        alert('⚠️ Bạn đã sử dụng hết số lượt yêu cầu tính năng riêng của gói hiện tại.\nVui lòng nâng cấp thêm để gửi yêu cầu mới!');
+        return;
+    }
+
+    const title = document.getElementById('vipReqTitle').value.trim();
+    const desc = document.getElementById('vipReqDesc').value.trim();
+    const attachment = document.getElementById('vipReqAttachment').value.trim();
+
+    if (!title || !desc) return;
+
+    const newReq = {
+        id: 'req-' + Date.now(),
+        title,
+        desc,
+        attachment,
+        date: new Date().toLocaleDateString('vi-VN'),
+        status: 'Đang tiếp nhận & Lập trình'
+    };
+
+    if (!sub.vipRequestsHistory) sub.vipRequestsHistory = [];
+    sub.vipRequestsHistory.unshift(newReq);
+    sub.vipRequestsRemaining = quota - 1;
+
+    saveState();
+    renderSubscriptionBadge();
+    openVipCustomHub();
+
+    document.getElementById('formSubmitVipRequest').reset();
+    alert(`✅ ĐÃ GỬI YÊU CẦU THÀNH CÔNG!\n\nYêu cầu "${title}" đã được gửi tới đội ngũ kỹ thuật.\nSố lượt yêu cầu của bạn còn lại: ${sub.vipRequestsRemaining} lượt.`);
+}
+
+function renderVipRequestHistory() {
+    const container = document.getElementById('vipRequestHistoryList');
+    if (!container) return;
+
+    const sub = state.userProfile.subscription || {};
+    const history = sub.vipRequestsHistory || [];
+
+    if (history.length === 0) {
+        container.innerHTML = `<div style="text-align: center; color: #94A3B8; font-size: 0.76rem; padding: 8px;">Chưa có yêu cầu nào được gửi. Hãy nhập yêu cầu đầu tiên của bạn ở trên!</div>`;
+        return;
+    }
+
+    container.innerHTML = history.map(h => `
+        <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 10px; font-size: 0.78rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <strong style="color: #60A5FA;">📌 ${h.title}</strong>
+                <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #F59E0B; font-size: 0.68rem;">${h.status}</span>
+            </div>
+            <p style="color: #94A3B8; margin: 0; font-size: 0.75rem;">${h.desc}</p>
+            <div style="font-size: 0.68rem; color: #64748B; margin-top: 4px;">Gửi lúc: ${h.date}</div>
+        </div>
+    `).join('');
+}
+
+// 1-TAP TESTING SANDBOX CONTROLLER
+function setSandboxState(stateType) {
+    if (!state.userProfile.subscription) state.userProfile.subscription = {};
+
+    if (stateType === 'trial') {
+        state.userProfile.subscription = {
+            status: 'trial',
+            plan: 'free_trial',
+            trialDaysRemaining: 7,
+            vipRequestsRemaining: 0,
+            paidAmount: 0
+        };
+        alert('⏱️ Đã chuyển sang trạng thái: [7 NGÀY DÙNG THỬ MIỄN PHÍ]. Bạn có thể thử nghiệm ghi chép bình thường.');
+    } else if (stateType === 'expired') {
+        state.userProfile.subscription = {
+            status: 'expired',
+            plan: 'free_trial',
+            trialDaysRemaining: 0,
+            vipRequestsRemaining: 0,
+            paidAmount: 0
+        };
+        alert('🔒 Đã chuyển sang trạng thái: [HẾT HẠN DÙNG THỬ 7 NGÀY].\nBây giờ bạn hãy thử bấm (+) Thêm Giao Dịch hoặc Quét Bill AI để xem Hộp thoại Khóa Paywall xuất hiện!');
+    } else if (stateType === 'lifetime') {
+        state.userProfile.subscription = {
+            status: 'active',
+            plan: 'lifetime',
+            trialDaysRemaining: 0,
+            vipRequestsRemaining: 0,
+            paidAmount: 499000
+        };
+        alert('💎 Đã chuyển sang trạng thái: [GÓI TRỌN ĐỜI 499K].\nBây giờ bạn bấm vào Huy hiệu Gói Trọn Đời ở góc trên để thử nghiệm tính năng NÂNG CẤP BÙ CHÊNH LỆCH lên VIP (999k - 499k = 500k)!');
+    } else if (stateType === 'vip') {
+        state.userProfile.subscription = {
+            status: 'active',
+            plan: 'vip',
+            trialDaysRemaining: 0,
+            vipRequestsRemaining: 3,
+            paidAmount: 999000
+        };
+        alert('👑 Đã chuyển sang trạng thái: [GÓI VIP 999K - 3 LƯỢT MAY ĐO].\nNút icon vương miện VIP đã xuất hiện trên thanh tiêu đề để bạn gửi yêu cầu tính năng riêng!');
+    } else if (stateType === 'super_vip') {
+        state.userProfile.subscription = {
+            status: 'active',
+            plan: 'super_vip',
+            trialDaysRemaining: 0,
+            vipRequestsRemaining: 10,
+            paidAmount: 1999000
+        };
+        alert('🚀 Đã chuyển sang trạng thái: [GÓI SUPER VIP 1.999K - 10 LƯỢT MAY ĐO].\nBạn có 10 lượt gửi yêu cầu may đo tính năng riêng!');
+    }
+
+    saveState();
+    renderSubscriptionBadge();
+    safeCreateIcons();
+}
+
+// Make globally accessible for inline HTML onclick handlers
+window.selectPricingPlan = selectPricingPlan;
+window.setSandboxState = setSandboxState;
+
