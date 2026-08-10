@@ -1792,15 +1792,35 @@ function parseRealReceiptOcrOutput(text, fileName = '') {
         }
     }
 
-    // 6. BANK ACCOUNT MAPPING
+    // 6. BANK & WALLET ACCOUNT MAPPING (ALL MAJOR VIETNAMESE BANKS & E-WALLETS)
     let accountId = state.accounts[0]?.id || 'acc-1';
     let accountName = state.accounts[0]?.name || 'Tài khoản VCB';
-    if (lower.includes('techcombank') || lower.includes('tcb')) {
-        const found = state.accounts.find(a => a.name.toLowerCase().includes('techcom') || a.name.toLowerCase().includes('tcb'));
-        if (found) { accountId = found.id; accountName = found.name; }
-    } else if (lower.includes('vietcombank') || lower.includes('vcb')) {
-        const found = state.accounts.find(a => a.name.toLowerCase().includes('vcb') || a.name.toLowerCase().includes('vietcom'));
-        if (found) { accountId = found.id; accountName = found.name; }
+
+    const bankKeywords = [
+        { keys: ['techcombank', 'tcb'], matchName: 'tcb' },
+        { keys: ['vietcombank', 'vcb', 'digibank'], matchName: 'vcb' },
+        { keys: ['mb bank', 'mbbank', 'quân đội', 'mb'], matchName: 'mb' },
+        { keys: ['bidv'], matchName: 'bidv' },
+        { keys: ['agribank', 'agri'], matchName: 'agri' },
+        { keys: ['vpbank', 'vpb', 'cake'], matchName: 'vpb' },
+        { keys: ['tpbank', 'tpb', 'tiên phong'], matchName: 'tpb' },
+        { keys: ['acb', 'á châu'], matchName: 'acb' },
+        { keys: ['sacombank', 'stb'], matchName: 'sacom' },
+        { keys: ['momo'], matchName: 'momo' },
+        { keys: ['zalopay', 'zalo pay'], matchName: 'zalo' },
+        { keys: ['shopeepay', 'shopee pay', 'airpay'], matchName: 'shopee' },
+        { keys: ['viettel money', 'viettelpay'], matchName: 'viettel' }
+    ];
+
+    for (const b of bankKeywords) {
+        if (b.keys.some(k => lower.includes(k))) {
+            const found = state.accounts.find(a => a.name.toLowerCase().includes(b.matchName) || b.keys.some(k => a.name.toLowerCase().includes(k)));
+            if (found) {
+                accountId = found.id;
+                accountName = found.name;
+                break;
+            }
+        }
     }
 
     // 7. CATEGORY CLASSIFICATION
