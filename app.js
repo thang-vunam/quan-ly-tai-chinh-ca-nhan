@@ -1574,135 +1574,112 @@ function initAiScannerSystem() {
     }
 }
 
-// PREPROCESS IMAGE FOR OCR (RESIZE & HIGH CONTRAST BINARIZATION PRESERVING GREEN/RED/BLUE TEXT)
-function preprocessImageForOcr(imgSrc) {
+// ===== UNIVERSAL OCR ENGINE (WORKS WITH ALL BANKS, NO COLOR DEPENDENCY) =====
+
+// STEP 1: Just resize image for faster OCR processing (NO pixel manipulation)
+function resizeImageForOcr(imgSrc) {
     return new Promise((resolve) => {
         try {
-            // Use canvas directly from the data URL without creating a new Image
-            // This avoids crossOrigin/tainted canvas issues on mobile browsers
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
             const img = new Image();
-            // Do NOT set crossOrigin for data: URLs — it causes tainted canvas on some mobile browsers
-            if (imgSrc && !imgSrc.startsWith('data:')) {
-                img.crossOrigin = 'anonymous';
-            }
+            if (imgSrc && !imgSrc.startsWith('data:')) img.crossOrigin = 'anonymous';
             img.onload = () => {
                 try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
                     const maxDim = 1200;
                     let w = img.naturalWidth || img.width || 600;
                     let h = img.naturalHeight || img.height || 800;
                     if (w > maxDim || h > maxDim) {
-                        if (w > h) {
-                            h = Math.round((h * maxDim) / w);
-                            w = maxDim;
-                        } else {
-                            w = Math.round((w * maxDim) / h);
-                            h = maxDim;
-                        }
+                        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                        else { w = Math.round((w * maxDim) / h); h = maxDim; }
+                    }
+                    canvas.width = w;
+                    canvas.height = h;
+                    ctx.drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/png'));
+                } catch(e) { resolve(imgSrc); }
+            };
+            img.onerror = () => resolve(imgSrc);
+            img.src = imgSrc;
+        } catch(e) { resolve(imgSrc); }
+    });
+}
+
+// STEP 2 (FALLBACK): Universal contrast enhancement using Saturation + Brightness
+// Works for ANY colored text (green, red, blue, purple, orange...) from ANY bank
+// Logic: Colored text has HIGH saturation, dark text has LOW brightness
+//        Light backgrounds (white, cream, beige) have LOW saturation AND HIGH brightness
+function enhanceContrastForOcr(imgSrc) {
+    return new Promise((resolve) => {
+        try {
+            const img = new Image();
+            if (imgSrc && !imgSrc.startsWith('data:')) img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const maxDim = 1200;
+                    let w = img.naturalWidth || img.width || 600;
+                    let h = img.naturalHeight || img.height || 800;
+                    if (w > maxDim || h > maxDim) {
+                        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                        else { w = Math.round((w * maxDim) / h); h = maxDim; }
                     }
                     canvas.width = w;
                     canvas.height = h;
                     ctx.drawImage(img, 0, 0, w, h);
                     let imgData;
-                    try {
-                        imgData = ctx.getImageData(0, 0, w, h);
-                    } catch (secErr) {
-                        console.warn('Canvas getImageData security error:', secErr);
-                        window._ocrDebug = (window._ocrDebug || '') + ' | getImageData BLOCKED: ' + secErr.message;
-                        resolve(imgSrc);
-                        return;
-                    }
+                    try { imgData = ctx.getImageData(0, 0, w, h); }
+                    catch(e) { resolve(imgSrc); return; }
+
                     const d = imgData.data;
-                    let greenCount = 0, darkCount = 0;
                     for (let i = 0; i < d.length; i += 4) {
-                        const r = d[i];
-                        const g = d[i+1];
-                        const b = d[i+2];
+                        const r = d[i], g = d[i+1], b = d[i+2];
+                        const maxC = Math.max(r, g, b);
+                        const minC = Math.min(r, g, b);
+                        const sat = maxC > 0 ? (maxC - minC) / maxC : 0;
+                        const bright = (r + g + b) / 3;
 
-                        const isGreenText = (g > 100 && g > r * 1.15 && g > b * 1.15);
-                        const isDarkText = (r < 125 && g < 125 && b < 125);
-                        const isRedText = (r > 130 && r > g * 1.35 && r > b * 1.35);
-                        const isBlueText = (b > 130 && b > r * 1.2 && b > g * 1.1);
+                        // Universal rule:
+                        // - Colored text (any hue): saturation > 0.15 AND not too bright
+                        // - Dark text (black/gray): brightness < 150
+                        // - Everything else: background → white
+                        const isColoredText = (sat > 0.15 && bright < 210);
+                        const isDarkText = (bright < 150);
 
-                        if (isGreenText || isDarkText || isRedText || isBlueText) {
-                            d[i] = 0;
-                            d[i+1] = 0;
-                            d[i+2] = 0;
-                            if (isGreenText) greenCount++;
-                            if (isDarkText) darkCount++;
+                        if (isColoredText || isDarkText) {
+                            d[i] = 0; d[i+1] = 0; d[i+2] = 0;
                         } else {
-                            d[i] = 255;
-                            d[i+1] = 255;
-                            d[i+2] = 255;
+                            d[i] = 255; d[i+1] = 255; d[i+2] = 255;
                         }
                     }
                     ctx.putImageData(imgData, 0, 0);
-                    window._ocrDebug = `preprocess OK: ${w}x${h}, green=${greenCount}, dark=${darkCount}`;
                     resolve(canvas.toDataURL('image/png'));
-                } catch(e) {
-                    console.warn('Preprocess inner error:', e);
-                    window._ocrDebug = (window._ocrDebug || '') + ' | preprocess err: ' + e.message;
-                    resolve(imgSrc);
-                }
+                } catch(e) { resolve(imgSrc); }
             };
-            img.onerror = (e) => {
-                console.warn('Preprocess image load error:', e);
-                window._ocrDebug = (window._ocrDebug || '') + ' | img.onerror fired';
-                resolve(imgSrc);
-            };
+            img.onerror = () => resolve(imgSrc);
             img.src = imgSrc;
-        } catch(outerErr) {
-            console.warn('Preprocess outer error:', outerErr);
-            window._ocrDebug = (window._ocrDebug || '') + ' | outer err: ' + outerErr.message;
-            resolve(imgSrc);
-        }
+        } catch(e) { resolve(imgSrc); }
     });
 }
 
-// REAL TESSERACT OCR ENGINE
-async function performRealOcrOnImage(imgSrc, onProgress) {
-    window._ocrDebug = 'start';
+// MAIN OCR: Run Tesseract on a given image URL
+async function runTesseractOnImage(imageUrl, onProgress) {
     if (!window.Tesseract || typeof window.Tesseract.recognize !== 'function') {
-        window._ocrDebug = 'Tesseract NOT LOADED';
-        return null;
+        return '';
     }
     try {
-        window._ocrDebug = 'preprocessing...';
-        const processedUrl = await preprocessImageForOcr(imgSrc);
-        const isProcessed = (processedUrl !== imgSrc);
-        window._ocrDebug += ` | preprocessed=${isProcessed}`;
-        
-        window._ocrDebug += ' | running Tesseract...';
-        let res = await window.Tesseract.recognize(processedUrl, 'eng', {
+        const res = await window.Tesseract.recognize(imageUrl, 'eng', {
             logger: (m) => {
                 if (m.status === 'recognizing text' && typeof onProgress === 'function') {
                     onProgress(Math.round(m.progress * 100));
                 }
             }
         });
-        let text = res?.data?.text || '';
-        window._ocrDebug += ` | ocr1 len=${text.trim().length}`;
-        
-        // If processed text is short, fallback to recognizing raw original image
-        if (!text || text.trim().length < 8) {
-            try {
-                window._ocrDebug += ' | trying raw fallback...';
-                const rawRes = await window.Tesseract.recognize(imgSrc, 'eng');
-                if (rawRes?.data?.text && rawRes.data.text.trim().length > text.trim().length) {
-                    text = rawRes.data.text;
-                    window._ocrDebug += ` | raw len=${text.trim().length}`;
-                }
-            } catch(e2) {
-                window._ocrDebug += ` | raw err: ${e2.message}`;
-            }
-        }
-        window._ocrDebug += ` | FINAL text: [${text.trim().substring(0, 120)}]`;
-        return text;
+        return (res?.data?.text || '').trim();
     } catch(e) {
-        window._ocrDebug += ` | Tesseract EXCEPTION: ${e.message}`;
-        console.warn("Tesseract OCR error note:", e);
-        return null;
+        console.warn('Tesseract error:', e);
+        return '';
     }
 }
 
@@ -1991,17 +1968,51 @@ async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
             previewImg.src = customImgUrl;
         }
         
-        // 1. RUN REAL OCR ON IMAGE
-        const rawOcrText = await performRealOcrOnImage(customImgUrl, (pct) => {
+        window._ocrDebug = '';
+
+        // ===== PASS 1: Direct OCR — no preprocessing, just resize =====
+        // This works for most banks (dark text on light background)
+        if (statusBadge) {
+            statusBadge.innerHTML = `<span class="pulse-dot"></span> Bước 1: Đọc trực tiếp nội dung text...`;
+        }
+        const resizedUrl = await resizeImageForOcr(customImgUrl);
+        const text1 = await runTesseractOnImage(resizedUrl, (pct) => {
             if (statusBadge) {
-                statusBadge.innerHTML = `<span class="pulse-dot"></span> Đang đọc chữ từ hình ảnh: ${pct}%`;
+                statusBadge.innerHTML = `<span class="pulse-dot"></span> Bước 1: Đang đọc trực tiếp... ${pct}%`;
             }
         });
+        window._ocrDebug += `Pass1: len=${text1.length}`;
 
-        if (rawOcrText && rawOcrText.trim().length > 3) {
-            data = parseRealReceiptOcrOutput(rawOcrText, fileName);
-        } else {
-            // Intelligent fallback with canvas analysis (Amount = 0, no mock numbers)
+        if (text1.length > 3) {
+            data = parseRealReceiptOcrOutput(text1, fileName);
+        }
+
+        // ===== PASS 2: Contrast-enhanced OCR (fallback) =====
+        // Only runs if Pass 1 found no amount — handles colored text (green, red, etc.)
+        if (!data || data.amount === 0) {
+            if (statusBadge) {
+                statusBadge.innerHTML = `<span class="pulse-dot"></span> Bước 2: Tăng cường tương phản...`;
+            }
+            window._ocrDebug += ' | Pass2: enhancing...';
+            const enhancedUrl = await enhanceContrastForOcr(customImgUrl);
+            const text2 = await runTesseractOnImage(enhancedUrl, (pct) => {
+                if (statusBadge) {
+                    statusBadge.innerHTML = `<span class="pulse-dot"></span> Bước 2: Đọc nâng cao... ${pct}%`;
+                }
+            });
+            window._ocrDebug += ` len=${text2.length}`;
+
+            if (text2.length > 3) {
+                const data2 = parseRealReceiptOcrOutput(text2, fileName);
+                if (data2.amount > 0 && (!data || data2.amount > data.amount)) {
+                    data = data2;
+                    window._ocrDebug += ' | Pass2 WIN';
+                }
+            }
+        }
+
+        // ===== FALLBACK: Canvas color analysis (no OCR, amount = 0) =====
+        if (!data) {
             data = analyzeReceiptImageOnCanvas(previewImg, fileName);
         }
         data.img = customImgUrl;
@@ -2017,9 +2028,8 @@ async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
 
     if (laser) laser.style.display = 'none';
 
-    // Build debug info for status badge
-    const debugInfo = window._ocrDebug || 'no debug';
-    const ocrTextPreview = (data._rawOcrText || '').substring(0, 80);
+    // Status badge with debug info
+    const debugInfo = window._ocrDebug || '';
 
     if (statusBadge) {
         if (data.amount > 0) {
@@ -2027,7 +2037,7 @@ async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
             statusBadge.style.color = '#34D399';
             statusBadge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
         } else {
-            statusBadge.innerHTML = `<i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: #FBBF24;"></i> Không đọc được số tiền. Debug: ${debugInfo.substring(0, 100)}`;
+            statusBadge.innerHTML = `<i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: #FBBF24;"></i> Không đọc được số tiền. [${debugInfo.substring(0, 120)}]`;
             statusBadge.style.color = '#FBBF24';
             statusBadge.style.borderColor = 'rgba(251, 191, 36, 0.4)';
         }
