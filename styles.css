@@ -796,13 +796,17 @@ body {
     cursor: not-allowed;
 }
 
-/* Avatar Upload Box & Large Profile Avatar (Fixing class mismatch avatar-big vs avatar-large) */
+/* Avatar Upload Box & Large Profile Avatar (Fixing class mismatch avatar-big vs avatar-large & button overlap) */
 .avatar-upload-box {
     position: relative;
-    width: 84px;
-    height: 84px;
-    margin: 0 auto 10px auto;
-    cursor: pointer;
+    width: auto;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 auto 18px auto;
 }
 
 .avatar-big, .avatar-large, #profileAvatarPreview {
