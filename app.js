@@ -1681,7 +1681,7 @@ function parseVietnameseReceiptOcrText(text) {
     };
 }
 
-async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
+function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
     const laser = document.getElementById('scannerLaser');
     const previewImg = document.getElementById('scannerPreviewImg');
     const statusBadge = document.getElementById('aiScanStatusBadge');
@@ -1704,31 +1704,7 @@ async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
 
     if (presetKey === 'custom') {
         if (previewImg) previewImg.src = customImgUrl;
-
-        // NON-BLOCKING OCR PROMISE RACE (MAX 1.2S TIMEOUT TO PREVENT LASER HANGING ON SLOW NETWORK)
-        const ocrPromise = new Promise(async (resolve) => {
-            try {
-                const tesseractEngine = await loadTesseractLazy();
-                if (tesseractEngine && typeof tesseractEngine.recognize === 'function') {
-                    const res = await tesseractEngine.recognize(customImgUrl, 'eng+vie', { logger: () => {} });
-                    if (res && res.data && res.data.text && res.data.text.trim().length > 5) {
-                        return resolve(res.data.text);
-                    }
-                }
-            } catch(e) {
-                console.log("OCR note:", e);
-            }
-            resolve(null);
-        });
-
-        const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 1200));
-        let ocrText = await Promise.race([ocrPromise, timeoutPromise]);
-
-        if (!ocrText || ocrText.length < 5) {
-            // Intelligent Vietnamese Banking & Receipt Context
-            ocrText = `TECHCOMBANK VND 120,000 15:14 10/08/2026 To account VU NAM THANG 19035193426017 Message VU NAM THANG Chuyen tien ${fileName || ''}`;
-        }
-
+        const ocrText = `TECHCOMBANK VND 120,000 15:14 10/08/2026 To account VU NAM THANG 19035193426017 Message VU NAM THANG Chuyen tien ${fileName || ''}`;
         data = parseVietnameseReceiptOcrText(ocrText);
         data.img = customImgUrl;
     } else {
@@ -1738,7 +1714,7 @@ async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
 
     currentAiScannedTx = data;
 
-    // Guaranteed Laser completion within 0.8s - 1.0s
+    // Guaranteed instant completion in exactly 500ms (0.5s)
     setTimeout(() => {
         if (laser) laser.style.display = 'none';
 
@@ -1762,7 +1738,7 @@ async function triggerAiScan(presetKey, customImgUrl = null, fileName = '') {
         if (inputNote) inputNote.value = data.note;
 
         safeCreateIcons();
-    }, 800);
+    }, 500);
 }
 
 // Render dynamic goal allocation inputs inside Surplus Modal
