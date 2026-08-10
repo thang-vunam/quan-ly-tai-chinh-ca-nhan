@@ -1037,3 +1037,101 @@ input:checked + .slider-round:before { transform: translateX(20px); }
     50% { transform: scale(1.3); opacity: 1; }
 }
 
+/* === PRICING TIERS & COMMERCIALIZATION STYLES === */
+.pricing-card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pricing-card:hover, .pricing-card.selected {
+    background: rgba(59, 130, 246, 0.12);
+    border-color: #3B82F6;
+    box-shadow: 0 4px 18px rgba(59, 130, 246, 0.25);
+    transform: translateY(-2px);
+}
+
+.pricing-card.popular {
+    border-color: rgba(96, 165, 250, 0.5);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.08));
+}
+
+.pricing-card.popular.selected {
+    border-color: #38BDF8;
+    box-shadow: 0 4px 20px rgba(56, 189, 248, 0.35);
+}
+
+.pricing-card.vip {
+    border-color: rgba(167, 139, 250, 0.4);
+}
+
+.pricing-card.vip.selected {
+    border-color: #A78BFA;
+    box-shadow: 0 4px 20px rgba(167, 139, 250, 0.35);
+}
+
+.pricing-card.super-vip {
+    border-color: rgba(245, 158, 11, 0.4);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.06), rgba(239, 68, 68, 0.06));
+}
+
+.pricing-card.super-vip.selected {
+    border-color: #F59E0B;
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.35);
+}
+
+.pricing-badge {
+    position: absolute;
+    top: -9px;
+    right: 12px;
+    background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+    color: #FFFFFF;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.pricing-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.pricing-card-title {
+    font-size: 0.95rem;
+    color: #F8FAFC;
+    display: block;
+}
+
+.pricing-card-desc {
+    font-size: 0.72rem;
+    color: #94A3B8;
+    display: block;
+    margin-top: 2px;
+}
+
+.pricing-card-price {
+    text-align: right;
+}
+
+.price-val {
+    font-size: 1.05rem;
+    color: #F8FAFC;
+    font-weight: 800;
+    display: block;
+}
+
+.price-unit {
+    font-size: 0.68rem;
+    color: #94A3B8;
+    display: block;
+}
+
