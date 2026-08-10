@@ -1,4 +1,4 @@
-// === PERSONAL FINANCE APP V4/V5 JS LOGIC (WITH 'ĂN UỐNG & THỰC PHẨM' AS DEFAULT EXPENSE CATEGORY) ===
+// === PERSONAL FINANCE APP V4/V5 JS LOGIC (WITH AI RECEIPT & BANKING SCANNER DEMO) ===
 
 // --- DEFAULT INITIAL STATE ---
 const DEFAULT_STATE = {
@@ -147,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initAutoLockInactivityTimer();
         initNavigation();
         initModals();
+        initAiScannerSystem();
         initFilters();
         initSearchListeners();
         renderApp();
@@ -1379,6 +1380,206 @@ function initModals() {
             alert('🎉 Đã phân bổ thặng dư ròng vào các Mục Tiêu Tài Chính thành công!');
         });
     }
+}
+
+// === AI SMART RECEIPT & BANKING SCANNER LOGIC (DEMO) ===
+const PRESET_RECEIPTS = {
+    highlands: {
+        img: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=500&auto=format&fit=crop&q=80',
+        amount: 145000,
+        category: 'Ăn tiệm & Cà phê',
+        ruleGroup: 'Mong muốn (30%)',
+        accountName: 'Ví MoMo / ViettelPay',
+        accountId: 'acc-4',
+        time: '10:30',
+        note: 'Highlands Coffee - 2 Trà Sen Vàng Cỡ Lớn',
+        statusText: 'Đã nhận diện hóa đơn F&B Highlands Coffee'
+    },
+    vcb: {
+        img: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=500&auto=format&fit=crop&q=80',
+        amount: 2500000,
+        category: 'Tiền nhà / Điện nước',
+        ruleGroup: 'Thiết yếu (50%)',
+        accountName: 'Tài khoản VCB',
+        accountId: 'acc-1',
+        time: '09:15',
+        note: 'Vietcombank - Chuyển khoản tiền điện nước & phí quản lý',
+        statusText: 'Đã nhận diện biên lai chuyển khoản Vietcombank'
+    },
+    winmart: {
+        img: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&auto=format&fit=crop&q=80',
+        amount: 320000,
+        category: 'Ăn uống & Thực phẩm',
+        ruleGroup: 'Thiết yếu (50%)',
+        accountName: 'Tiền mặt',
+        accountId: 'acc-5',
+        time: '17:45',
+        note: 'Siêu thị WinMart - Mua rau củ quả & thực phẩm tươi',
+        statusText: 'Đã nhận diện hóa đơn siêu thị WinMart'
+    }
+};
+
+let currentAiScannedTx = null;
+
+function initAiScannerSystem() {
+    const modalAi = document.getElementById('modalAiScanner');
+    const btnOpenTop = document.getElementById('btnOpenAiScannerTop');
+    const btnOpenTab = document.getElementById('btnOpenAiScannerTab');
+    const btnTriggerFromAdd = document.getElementById('btnTriggerAiScanFromAdd');
+    const closeAiModal = document.getElementById('closeAiScannerModal');
+
+    const openAiModal = () => {
+        if (modalAi) {
+            modalAi.classList.add('active');
+            triggerAiScan('highlands');
+            safeCreateIcons();
+        }
+    };
+
+    [btnOpenTop, btnOpenTab, btnTriggerFromAdd].forEach(btn => {
+        if (btn) btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const modalAddTx = document.getElementById('modalAddTx');
+            if (modalAddTx) modalAddTx.classList.remove('active');
+            openAiModal();
+        });
+    });
+
+    if (closeAiModal) {
+        closeAiModal.addEventListener('click', () => {
+            if (modalAi) modalAi.classList.remove('active');
+        });
+    }
+
+    // PRESET SWITCHERS
+    document.querySelectorAll('.preset-bill-btn[data-preset]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.preset-bill-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const presetKey = btn.getAttribute('data-preset');
+            triggerAiScan(presetKey);
+        });
+    });
+
+    // CUSTOM IMAGE UPLOADER
+    const btnUpload = document.getElementById('btnUploadCustomBill');
+    const inputFile = document.getElementById('inputCustomBillFile');
+    if (btnUpload && inputFile) {
+        btnUpload.addEventListener('click', () => inputFile.click());
+        inputFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    document.querySelectorAll('.preset-bill-btn').forEach(b => b.classList.remove('active'));
+                    btnUpload.classList.add('active');
+                    triggerAiScan('custom', evt.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // CONFIRM TRANSACTION BUTTON
+    const btnConfirm = document.getElementById('btnConfirmAiTransaction');
+    if (btnConfirm) {
+        btnConfirm.addEventListener('click', () => {
+            if (!currentAiScannedTx) return;
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+
+            // Match or fallback to active account in user's accounts
+            let finalAccId = currentAiScannedTx.accountId;
+            if (!state.accounts.some(a => a.id === finalAccId)) {
+                finalAccId = state.accounts[0]?.id || 'acc-1';
+            }
+
+            const newTx = {
+                id: 'tx-' + Date.now(),
+                type: 'expense',
+                amount: currentAiScannedTx.amount,
+                category: currentAiScannedTx.category,
+                ruleGroup: currentAiScannedTx.ruleGroup,
+                accountId: finalAccId,
+                date: dateStr,
+                time: currentAiScannedTx.time || '10:30',
+                note: currentAiScannedTx.note
+            };
+
+            state.transactions.push(newTx);
+            saveState();
+
+            if (modalAi) modalAi.classList.remove('active');
+            alert(`🎉 Đã tự động lưu giao dịch ${formatVND(newTx.amount)} (${newTx.note}) vào Sổ Thu Chi thành công!`);
+        });
+    }
+}
+
+function triggerAiScan(presetKey, customImgUrl = null) {
+    const laser = document.getElementById('scannerLaser');
+    const previewImg = document.getElementById('scannerPreviewImg');
+    const statusBadge = document.getElementById('aiScanStatusBadge');
+    const amountElem = document.getElementById('aiExtractedAmount');
+    const catElem = document.getElementById('aiExtractedCategory');
+    const ruleElem = document.getElementById('aiExtractedRuleGroup');
+    const accElem = document.getElementById('aiExtractedAccount');
+    const timeElem = document.getElementById('aiExtractedDateTime');
+    const noteElem = document.getElementById('aiExtractedNote');
+
+    let data = null;
+    if (presetKey === 'custom') {
+        data = {
+            img: customImgUrl,
+            amount: 85000,
+            category: 'Ăn uống & Thực phẩm',
+            ruleGroup: 'Thiết yếu (50%)',
+            accountName: state.accounts[0]?.name || 'Tài khoản VCB',
+            accountId: state.accounts[0]?.id || 'acc-1',
+            time: '12:15',
+            note: 'Ảnh chụp hóa đơn người dùng tải lên',
+            statusText: 'Đã nhận diện thành công hóa đơn tải lên'
+        };
+    } else {
+        data = PRESET_RECEIPTS[presetKey] || PRESET_RECEIPTS.highlands;
+    }
+
+    currentAiScannedTx = data;
+
+    if (previewImg) previewImg.src = data.img;
+    if (laser) laser.style.display = 'block';
+
+    if (statusBadge) {
+        statusBadge.innerHTML = `<span class="pulse-dot"></span> Đang quét tia laser & bóc tách AI...`;
+        statusBadge.style.color = '#60A5FA';
+        statusBadge.style.borderColor = 'rgba(59, 130, 246, 0.4)';
+    }
+
+    // SIMULATE FAST AI VISION SCANNING ANIMATION (1.1s)
+    setTimeout(() => {
+        if (laser) laser.style.display = 'none';
+
+        if (statusBadge) {
+            statusBadge.innerHTML = `<i data-lucide="check-circle" style="width: 14px; height: 14px; color: #34D399;"></i> Bóc tách thành công 100% bằng AI`;
+            statusBadge.style.color = '#34D399';
+            statusBadge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        }
+
+        const now = new Date();
+        const dateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+        if (amountElem) amountElem.textContent = formatVND(data.amount);
+        if (catElem) catElem.textContent = data.category;
+        if (ruleElem) ruleElem.textContent = data.ruleGroup;
+        if (accElem) accElem.textContent = data.accountName;
+        if (timeElem) timeElem.textContent = `${dateStr} ${data.time}`;
+        if (noteElem) noteElem.textContent = data.note;
+
+        safeCreateIcons();
+    }, 1100);
 }
 
 // Render dynamic goal allocation inputs inside Surplus Modal
