@@ -2355,12 +2355,12 @@ function renderSubscriptionBadge() {
         badge.style.color = '#10B981';
         if (vipBtn) vipBtn.style.display = 'none';
     } else if (sub.plan === 'vip') {
-        badge.innerHTML = `👑 VIP [${sub.vipRequestsRemaining || 0} lượt]`;
+        badge.innerHTML = `👑 VIP (${sub.vipRequestsRemaining || 0})`;
         badge.style.background = 'rgba(139, 92, 246, 0.25)';
         badge.style.color = '#A78BFA';
         if (vipBtn) vipBtn.style.display = 'inline-flex';
     } else if (sub.plan === 'super_vip') {
-        badge.innerHTML = `🚀 Super VIP [${sub.vipRequestsRemaining || 0} lượt]`;
+        badge.innerHTML = `🚀 S-VIP (${sub.vipRequestsRemaining || 0})`;
         badge.style.background = 'rgba(245, 158, 11, 0.25)';
         badge.style.color = '#FBBF24';
         if (vipBtn) vipBtn.style.display = 'inline-flex';
@@ -2484,6 +2484,12 @@ function simulatePaymentSuccess(planKey, paidAmt) {
     if (modalPaymentQr) modalPaymentQr.classList.remove('active');
 
     alert(`🎉 CHÚC MỪNG BẠN!\n\nHệ thống SePay BIDV đã xác nhận thanh toán thành công ${formatVND(paidAmt)}!\nTài khoản của bạn đã được nâng cấp lên [${planKey.toUpperCase()}] trọn vẹn! 🚀`);
+
+    if (planKey === 'vip' || planKey === 'super_vip') {
+        setTimeout(() => {
+            openVipCustomHub();
+        }, 150);
+    }
 }
 
 function openVipCustomHub() {

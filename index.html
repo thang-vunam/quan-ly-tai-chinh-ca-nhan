@@ -23,7 +23,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Stylesheet with Cache Busting -->
-    <link rel="stylesheet" href="styles.css?v=3.0.0">
+    <link rel="stylesheet" href="styles.css?v=3.1.0">
 </head>
 <body>
     <div class="app-container">
@@ -56,8 +56,10 @@
                 <i data-lucide="flask-conical" style="width: 14px; height: 14px;"></i> TEST SANDBOX:
             </div>
             <div style="display: flex; gap: 5px; flex-wrap: nowrap; white-space: nowrap;">
-                <button class="btn-sm" onclick="setSandboxState('trial')" style="background: rgba(245, 158, 11, 0.2); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 8px; font-size: 0.7rem;">⏱️ 7 Ngày Free</button>
+                <button class="btn-sm" onclick="setSandboxState('free')" style="background: rgba(245, 158, 11, 0.2); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 8px; font-size: 0.7rem;">⏱️ Free (7 Ngày)</button>
                 <button class="btn-sm" onclick="setSandboxState('expired')" style="background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 8px; font-size: 0.7rem;">🔒 Hết Hạn</button>
+                <button class="btn-sm" onclick="setSandboxState('monthly')" style="background: rgba(59, 130, 246, 0.2); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.4); padding: 4px 8px; font-size: 0.7rem;">☕ 1 Tháng (29k)</button>
+                <button class="btn-sm" onclick="setSandboxState('yearly')" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 4px 8px; font-size: 0.7rem;">🌟 1 Năm (199k)</button>
                 <button class="btn-sm" onclick="setSandboxState('lifetime')" style="background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.4); padding: 4px 8px; font-size: 0.7rem;">💎 Trọn Đời (499k)</button>
                 <button class="btn-sm" onclick="setSandboxState('vip')" style="background: rgba(139, 92, 246, 0.2); color: #A78BFA; border: 1px solid rgba(139, 92, 246, 0.4); padding: 4px 8px; font-size: 0.7rem;">👑 VIP (3 lượt)</button>
                 <button class="btn-sm" onclick="setSandboxState('super_vip')" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 8px; font-size: 0.7rem;">🚀 Super VIP (10 lượt)</button>
@@ -953,6 +955,6 @@
     <script src="lib/tesseract.min.js"></script>
 
     <!-- Application Script with Cache Busting -->
-    <script src="app.js?v=3.0.0"></script>
+    <script src="app.js?v=3.1.0"></script>
 </body>
 </html>
