@@ -17,12 +17,10 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="icon" type="image/png" href="icon-512.png">
 
-    <!-- Fonts & Icons -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Stylesheet -->
     <link rel="stylesheet" href="styles.css">
@@ -431,22 +429,16 @@
                     <button class="close-btn" id="closeAiScannerModal"><i data-lucide="x"></i></button>
                 </div>
                 <div class="modal-body" style="padding-top: 12px;">
-                    <!-- PROMINENT BUTTON: SCAN FROM SAVED PHOTO GALLERY / QR CODE -->
-                    <div style="margin-bottom: 12px;">
-                        <button type="button" class="btn-block" id="btnUploadCustomBillBig" style="background: linear-gradient(135deg, #3B82F6, #8B5CF6); color: #FFFFFF; font-weight: 700; font-size: 0.9rem; padding: 12px 14px; border-radius: 14px; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);">
-                            <i data-lucide="image"></i> Quét Ảnh / Mã QR Trong Kho Thư Viện
+                    <!-- SCAN ACTION BUTTONS: 1. GALLERY (DEFAULT), 2. CAMERA (DIRECT) -->
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button type="button" class="btn-block" id="btnUploadCustomBillBig" style="flex: 1.2; background: linear-gradient(135deg, #3B82F6, #8B5CF6); color: #FFFFFF; font-weight: 700; font-size: 0.82rem; padding: 10px 8px; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);">
+                            <i data-lucide="image" style="width: 15px; height: 15px;"></i> Đổi Ảnh Thư Viện
+                        </button>
+                        <button type="button" class="btn-block secondary" id="btnCaptureCameraBill" style="flex: 1; font-weight: 600; font-size: 0.82rem; padding: 10px 8px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            <i data-lucide="camera" style="width: 15px; height: 15px;"></i> Chụp Camera
                         </button>
                         <input type="file" id="inputCustomBillFile" accept="image/*" style="display: none;">
-                    </div>
-
-                    <!-- PRESET BILL SELECTION ROW -->
-                    <div style="margin-bottom: 12px;">
-                        <span style="font-size: 0.78rem; color: #94A3B8; display: block; margin-bottom: 6px;">Hoặc thử nhanh các mẫu có sẵn:</span>
-                        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;">
-                            <button type="button" class="preset-bill-btn active" data-preset="highlands">☕ Highlands 145k</button>
-                            <button type="button" class="preset-bill-btn" data-preset="vcb">🏦 Chuyển VCB 2.5Tr</button>
-                            <button type="button" class="preset-bill-btn" data-preset="winmart">🛒 WinMart 320k</button>
-                        </div>
+                        <input type="file" id="inputCameraBillFile" accept="image/*" capture="environment" style="display: none;">
                     </div>
 
                     <!-- SCANNER VIEWPORT WITH ANIMATED LASER -->
@@ -456,7 +448,7 @@
                     </div>
 
                     <!-- AI SCAN STATUS BADGE -->
-                    <div style="text-align: center; margin-bottom: 14px;">
+                    <div style="text-align: center; margin-bottom: 12px;">
                         <span class="ai-pill-badge" id="aiScanStatusBadge">
                             <span class="pulse-dot"></span> Đang nhận diện dữ liệu bằng AI...
                         </span>
@@ -739,6 +731,10 @@
             </div>
         </div>
     </div>
+
+    <!-- Third-Party Core Libraries (Loaded at bottom of body for instant 0.05s initial render) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Application Script -->
     <script src="app.js"></script>
