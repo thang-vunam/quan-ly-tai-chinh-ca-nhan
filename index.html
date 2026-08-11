@@ -23,7 +23,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Stylesheet with Cache Busting -->
-    <link rel="stylesheet" href="styles.css?v=4.6.0">
+    <link rel="stylesheet" href="styles.css?v=4.7.0">
 </head>
 <body>
     <div class="app-container">
@@ -443,6 +443,52 @@
 
         <!-- === MODAL: AI SMART RECEIPT & QR SCANNER === -->
         <div class="modal-overlay" id="modalAiScanner">
+            <style>
+                #modalAiScanner .modal-content {
+                    max-width: 420px !important;
+                    width: 92% !important;
+                    margin: auto !important;
+                    overflow: hidden !important;
+                }
+                #modalAiScanner .modal-body {
+                    overflow-x: hidden !important;
+                    overflow-y: auto !important;
+                    max-height: 75vh !important;
+                    padding: 12px 16px !important;
+                    box-sizing: border-box !important;
+                }
+                #modalAiScanner * {
+                    box-sizing: border-box !important;
+                    max-width: 100% !important;
+                }
+                #modalAiScanner .scanner-viewport {
+                    position: relative !important;
+                    width: 100% !important;
+                    height: 200px !important;
+                    max-height: 200px !important;
+                    border-radius: 16px !important;
+                    background: #060911 !important;
+                    border: 2px dashed rgba(59, 130, 246, 0.4) !important;
+                    overflow: hidden !important;
+                    display: flex !important;
+                    justify-content: center !important;
+                    align-items: center !important;
+                    margin-bottom: 12px !important;
+                    padding: 6px !important;
+                }
+                #modalAiScanner .scanner-preview-img {
+                    width: 100% !important;
+                    height: 100% !important;
+                    max-width: 100% !important;
+                    max-height: 100% !important;
+                    object-fit: contain !important;
+                    object-position: center !important;
+                    opacity: 0.95 !important;
+                    border-radius: 10px !important;
+                    display: block !important;
+                    margin: auto !important;
+                }
+            </style>
             <div class="modal-content">
                 <div class="modal-header">
                     <h4><i data-lucide="sparkles" style="color: #60A5FA;"></i> Quét Hóa Đơn & Mã QR Bằng AI</h4>
@@ -462,9 +508,9 @@
                     </div>
 
                     <!-- SCANNER VIEWPORT WITH ANIMATED LASER -->
-                    <div class="scanner-viewport" id="scannerViewport">
+                    <div class="scanner-viewport" id="scannerViewport" style="position: relative !important; width: 100% !important; max-width: 100% !important; height: 200px !important; max-height: 200px !important; border-radius: 16px !important; background: #060911 !important; border: 2px dashed rgba(59, 130, 246, 0.4) !important; overflow: hidden !important; display: flex !important; justify-content: center !important; align-items: center !important; margin-bottom: 12px !important; padding: 6px !important;">
                         <div class="scanner-laser-line" id="scannerLaser"></div>
-                        <img id="scannerPreviewImg" src="" alt="Hóa đơn / Mã QR" class="scanner-preview-img">
+                        <img id="scannerPreviewImg" src="" alt="Hóa đơn / Mã QR" class="scanner-preview-img" style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain !important; object-position: center !important; opacity: 0.95 !important; border-radius: 10px !important; display: block !important; margin: auto !important;">
                     </div>
 
                     <!-- AI SCAN STATUS BADGE -->
@@ -1111,6 +1157,6 @@
     <script src="lib/tesseract.min.js"></script>
 
     <!-- Application Script with Cache Busting -->
-    <script src="app.js?v=4.6.0"></script>
+    <script src="app.js?v=4.7.0"></script>
 </body>
 </html>
