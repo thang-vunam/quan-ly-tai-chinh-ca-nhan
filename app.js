@@ -2384,11 +2384,29 @@ function openPaywallModal(presetPlan = null) {
     if (sub.status === 'expired') {
         if (noticeTitle) noticeTitle.innerHTML = '🔒 Thời Gian Dùng Thử 7 Ngày Đã Kết Thúc';
         if (noticeSub) noticeSub.innerHTML = 'Dữ liệu sổ sách của bạn vẫn được lưu an toàn 100%! Vui lòng chọn gói cước để tiếp tục ghi chép & quét hóa đơn AI.';
-    } else if (sub.status === 'active' && sub.plan === 'lifetime') {
-        if (noticeTitle) noticeTitle.innerHTML = '💎 Bạn Đang Sở Hữu Gói Trọn Đời (499k)';
-        if (noticeSub) noticeSub.innerHTML = 'Đặc quyền: Bạn chỉ cần đóng <b>phần tiền chênh lệch</b> để nâng cấp lên VIP hoặc Super VIP!';
+    } else if (sub.status === 'active') {
+        if (sub.plan === 'monthly') {
+            if (noticeTitle) noticeTitle.innerHTML = '☕ Bạn Đang Sử Dụng Gói 1 Tháng Pro (29.000đ)';
+            if (noticeSub) noticeSub.innerHTML = 'Nâng cấp lên Gói 1 Năm hoặc Trọn Đời để tiết kiệm hơn & mở khóa tính năng dài lâu!';
+        } else if (sub.plan === 'yearly') {
+            if (noticeTitle) noticeTitle.innerHTML = '🌟 Bạn Đang Sử Dụng Gói 1 Năm Pro (199.000đ)';
+            if (noticeSub) noticeSub.innerHTML = 'Nâng cấp lên Gói Trọn Đời hoặc VIP để có đặc quyền yêu cầu tính năng riêng!';
+        } else if (sub.plan === 'lifetime') {
+            if (noticeTitle) noticeTitle.innerHTML = '💎 Bạn Đang Sở Hữu Gói Trọn Đời (499.000đ)';
+            if (noticeSub) noticeSub.innerHTML = 'Đặc quyền: Bạn được <b>trừ 499.000đ đã trả</b> khi nâng cấp lên Gói VIP hoặc Super VIP!';
+        } else if (sub.plan === 'vip') {
+            if (noticeTitle) noticeTitle.innerHTML = '👑 Bạn Đang Sở Hữu Gói VIP Cá Nhân Hóa (999.000đ)';
+            if (noticeSub) noticeSub.innerHTML = 'Đặc quyền: Nâng cấp lên Super VIP (10 lượt) để yêu cầu làm thêm nhiều tính năng riêng!';
+        } else if (sub.plan === 'super_vip') {
+            if (noticeTitle) noticeTitle.innerHTML = '🚀 Bạn Đang Sở Hữu Gói Super VIP (1.999.000đ)';
+            if (noticeSub) noticeSub.innerHTML = 'Đặc quyền VIP tối cao: Sở hữu trọn đời & 10 lượt yêu cầu lập trình tính năng riêng!';
+        } else {
+            if (noticeTitle) noticeTitle.innerHTML = '⭐ Tài Khoản Bản Quyền Pro Đang Hoạt Động';
+            if (noticeSub) noticeSub.innerHTML = 'Chọn gói cước bên dưới nếu bạn muốn nâng cấp quyền lợi VIP lớn hơn!';
+        }
     } else {
-        if (noticeTitle) noticeTitle.innerHTML = '🎁 Bạn Đang Dùng Thử 7 Ngày Miễn Phí';
+        const daysLeft = sub.trialDaysRemaining || 7;
+        if (noticeTitle) noticeTitle.innerHTML = `🎁 Bạn Đang Dùng Thử ${daysLeft} Ngày Miễn Phí`;
         if (noticeSub) noticeSub.innerHTML = 'Nâng cấp ngay hôm nay để mở khóa tính năng AI không giới hạn & bảo toàn dữ liệu trọn đời!';
     }
 
@@ -2415,10 +2433,13 @@ function selectPricingPlan(planKey) {
     if (planKey === 'vip') basePrice = 999000;
     if (planKey === 'super_vip') basePrice = 1999000;
 
-    // FAIR UPGRADE PRORATION CALCULATION:
+    // PRORATION RULE: Only deduct 499k paid amount when upgrading from Lifetime (sub.plan === 'lifetime') to VIP or Super VIP
     let finalPrice = basePrice;
-    if (sub.status === 'active' && sub.paidAmount > 0 && basePrice > sub.paidAmount) {
-        finalPrice = basePrice - sub.paidAmount;
+    if (sub.status === 'active' && sub.plan === 'lifetime' && (planKey === 'vip' || planKey === 'super_vip')) {
+        const lifetimePaid = sub.paidAmount || 499000;
+        if (basePrice > lifetimePaid) {
+            finalPrice = basePrice - lifetimePaid;
+        }
     }
 
     activeQrPaymentAmount = finalPrice;
@@ -2449,9 +2470,13 @@ function triggerPaymentQr(planKey) {
     if (planKey === 'vip') basePrice = 999000;
     if (planKey === 'super_vip') basePrice = 1999000;
 
+    // PRORATION RULE: Only deduct 499k paid amount when upgrading from Lifetime (sub.plan === 'lifetime') to VIP or Super VIP
     let finalPrice = basePrice;
-    if (sub.status === 'active' && sub.paidAmount > 0 && basePrice > sub.paidAmount) {
-        finalPrice = basePrice - sub.paidAmount;
+    if (sub.status === 'active' && sub.plan === 'lifetime' && (planKey === 'vip' || planKey === 'super_vip')) {
+        const lifetimePaid = sub.paidAmount || 499000;
+        if (basePrice > lifetimePaid) {
+            finalPrice = basePrice - lifetimePaid;
+        }
     }
     activeQrPaymentAmount = finalPrice;
 
