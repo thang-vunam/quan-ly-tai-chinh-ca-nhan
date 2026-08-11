@@ -1161,101 +1161,176 @@ input:checked + .slider-round:before { transform: translateX(20px); }
     50% { transform: scale(1.3); opacity: 1; }
 }
 
-/* === PRICING TIERS & COMMERCIALIZATION STYLES === */
+/* === MODERN PRICING CARDS REDESIGN (HIGH-CONTRAST GLASS CARDS) === */
+.pricing-tier-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    margin-top: 10px !important;
+}
+
 .pricing-card {
-    position: relative;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
-    padding: 14px 16px;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 16px !important;
+    padding: 14px 16px !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 12px !important;
+    box-sizing: border-box !important;
+    margin-bottom: 0 !important;
 }
 
-.pricing-card:hover, .pricing-card.selected {
-    background: rgba(59, 130, 246, 0.12);
-    border-color: #3B82F6;
-    box-shadow: 0 4px 18px rgba(59, 130, 246, 0.25);
-    transform: translateY(-2px);
+.pricing-card:hover {
+    border-color: rgba(59, 130, 246, 0.5) !important;
+    background: rgba(255, 255, 255, 0.09) !important;
 }
 
-.pricing-card.popular {
-    border-color: rgba(96, 165, 250, 0.5);
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.08));
+.pricing-card.selected {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.22), rgba(139, 92, 246, 0.22)) !important;
+    border: 2px solid #3B82F6 !important;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35) !important;
 }
 
-.pricing-card.popular.selected {
-    border-color: #38BDF8;
-    box-shadow: 0 4px 20px rgba(56, 189, 248, 0.35);
+.pricing-card.selected.popular {
+    border-color: #38BDF8 !important;
+    box-shadow: 0 4px 20px rgba(56, 189, 248, 0.4) !important;
 }
 
-.pricing-card.vip {
-    border-color: rgba(167, 139, 250, 0.4);
+.pricing-card.selected.vip {
+    border-color: #A78BFA !important;
+    box-shadow: 0 4px 20px rgba(167, 139, 250, 0.4) !important;
 }
 
-.pricing-card.vip.selected {
-    border-color: #A78BFA;
-    box-shadow: 0 4px 20px rgba(167, 139, 250, 0.35);
+.pricing-card.selected.super-vip {
+    border-color: #F59E0B !important;
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4) !important;
 }
 
-.pricing-card.super-vip {
-    border-color: rgba(245, 158, 11, 0.4);
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.06), rgba(239, 68, 68, 0.06));
+/* Floating Top Pill Tags */
+.pricing-pill-tag {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    padding: 2px 8px !important;
+    border-radius: 20px !important;
+    font-size: 0.65rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 4px !important;
+    width: fit-content !important;
 }
 
-.pricing-card.super-vip.selected {
-    border-color: #F59E0B;
-    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.35);
+.pricing-pill-tag.popular {
+    background: rgba(56, 189, 248, 0.2) !important;
+    color: #38BDF8 !important;
+    border: 1px solid rgba(56, 189, 248, 0.4) !important;
 }
 
-.pricing-badge {
-    position: absolute;
-    top: -9px;
-    right: 12px;
-    background: linear-gradient(135deg, #3B82F6, #8B5CF6);
-    color: #FFFFFF;
-    font-size: 0.65rem;
-    font-weight: 800;
-    padding: 3px 8px;
-    border-radius: 6px;
-    letter-spacing: 0.5px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+.pricing-pill-tag.lifetime {
+    background: rgba(16, 185, 129, 0.2) !important;
+    color: #10B981 !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
 }
 
-.pricing-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
+.pricing-pill-tag.vip {
+    background: rgba(167, 139, 250, 0.2) !important;
+    color: #C4B5FD !important;
+    border: 1px solid rgba(167, 139, 250, 0.4) !important;
+}
+
+.pricing-pill-tag.super-vip {
+    background: rgba(245, 158, 11, 0.2) !important;
+    color: #FBBF24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.4) !important;
+}
+
+.pricing-card-left {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    text-align: left !important;
 }
 
 .pricing-card-title {
-    font-size: 0.95rem;
-    color: #F8FAFC;
-    display: block;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    color: #F8FAFC !important;
 }
 
 .pricing-card-desc {
-    font-size: 0.72rem;
-    color: #94A3B8;
-    display: block;
-    margin-top: 2px;
+    font-size: 0.73rem !important;
+    color: #94A3B8 !important;
+    margin-top: 2px !important;
+    line-height: 1.3 !important;
+}
+
+.pricing-card-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex-shrink: 0 !important;
 }
 
 .pricing-card-price {
-    text-align: right;
+    text-align: right !important;
 }
 
 .price-val {
-    font-size: 1.05rem;
-    color: #F8FAFC;
-    font-weight: 800;
-    display: block;
+    font-size: 1.05rem !important;
+    color: #F8FAFC !important;
+    font-weight: 800 !important;
+    display: block !important;
+    line-height: 1.1 !important;
 }
 
 .price-unit {
-    font-size: 0.68rem;
-    color: #94A3B8;
-    display: block;
+    font-size: 0.68rem !important;
+    color: #94A3B8 !important;
+    display: block !important;
+}
+
+/* Radio Checkmark Circle */
+.pricing-radio-icon {
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    min-height: 22px !important;
+    border-radius: 50% !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: transparent !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+}
+
+.pricing-card.selected .pricing-radio-icon {
+    border-color: #3B82F6 !important;
+    background: #3B82F6 !important;
+    color: #FFFFFF !important;
+}
+
+.pricing-card.selected.popular .pricing-radio-icon {
+    border-color: #38BDF8 !important;
+    background: #38BDF8 !important;
+    color: #0F172A !important;
+}
+
+.pricing-card.selected.vip .pricing-radio-icon {
+    border-color: #A78BFA !important;
+    background: #A78BFA !important;
+    color: #0F172A !important;
+}
+
+.pricing-card.selected.super-vip .pricing-radio-icon {
+    border-color: #F59E0B !important;
+    background: #F59E0B !important;
+    color: #0F172A !important;
 }
 

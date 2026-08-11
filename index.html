@@ -23,7 +23,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Stylesheet with Cache Busting -->
-    <link rel="stylesheet" href="styles.css?v=4.0.0">
+    <link rel="stylesheet" href="styles.css?v=4.2.0">
 </head>
 <body>
     <div class="app-container">
@@ -769,90 +769,246 @@
 
         <!-- === MODAL: 5-TIER PAYWALL & UPGRADE SELECTOR === -->
         <div class="modal-overlay" id="modalPaywall">
+            <style>
+                #modalPaywall .pricing-tier-list {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    gap: 12px !important;
+                    margin-top: 10px !important;
+                }
+                #modalPaywall .pricing-card {
+                    position: relative !important;
+                    background: rgba(30, 41, 59, 0.85) !important;
+                    border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+                    border-radius: 16px !important;
+                    padding: 14px 16px !important;
+                    cursor: pointer !important;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                    display: flex !important;
+                    flex-direction: row !important;
+                    justify-content: space-between !important;
+                    align-items: center !important;
+                    gap: 12px !important;
+                    box-sizing: border-box !important;
+                    backdrop-filter: blur(8px) !important;
+                    -webkit-backdrop-filter: blur(8px) !important;
+                }
+                #modalPaywall .pricing-card:hover {
+                    border-color: rgba(59, 130, 246, 0.5) !important;
+                    background: rgba(30, 41, 59, 0.95) !important;
+                }
+                #modalPaywall .pricing-card.selected {
+                    background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(139, 92, 246, 0.25)) !important;
+                    border: 2px solid #3B82F6 !important;
+                    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4) !important;
+                }
+                #modalPaywall .pricing-card.selected.popular {
+                    border-color: #38BDF8 !important;
+                    box-shadow: 0 4px 20px rgba(56, 189, 248, 0.45) !important;
+                }
+                #modalPaywall .pricing-card.selected.vip {
+                    border-color: #A78BFA !important;
+                    box-shadow: 0 4px 20px rgba(167, 139, 250, 0.45) !important;
+                }
+                #modalPaywall .pricing-card.selected.super-vip {
+                    border-color: #F59E0B !important;
+                    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.45) !important;
+                }
+                #modalPaywall .pricing-pill-tag {
+                    display: inline-flex !important;
+                    align-items: center !important;
+                    gap: 4px !important;
+                    padding: 3px 10px !important;
+                    border-radius: 20px !important;
+                    font-size: 0.65rem !important;
+                    font-weight: 800 !important;
+                    margin-bottom: 6px !important;
+                    width: fit-content !important;
+                    text-transform: uppercase !important;
+                    letter-spacing: 0.3px !important;
+                }
+                #modalPaywall .pricing-pill-tag.popular {
+                    background: rgba(56, 189, 248, 0.2) !important;
+                    color: #38BDF8 !important;
+                    border: 1px solid rgba(56, 189, 248, 0.4) !important;
+                }
+                #modalPaywall .pricing-pill-tag.lifetime {
+                    background: rgba(16, 185, 129, 0.2) !important;
+                    color: #10B981 !important;
+                    border: 1px solid rgba(16, 185, 129, 0.4) !important;
+                }
+                #modalPaywall .pricing-pill-tag.vip {
+                    background: rgba(167, 139, 250, 0.2) !important;
+                    color: #C4B5FD !important;
+                    border: 1px solid rgba(167, 139, 250, 0.4) !important;
+                }
+                #modalPaywall .pricing-pill-tag.super-vip {
+                    background: rgba(245, 158, 11, 0.2) !important;
+                    color: #FBBF24 !important;
+                    border: 1px solid rgba(245, 158, 11, 0.4) !important;
+                }
+                #modalPaywall .pricing-card-left {
+                    flex: 1 !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    text-align: left !important;
+                }
+                #modalPaywall .pricing-card-title {
+                    font-size: 0.95rem !important;
+                    font-weight: 700 !important;
+                    color: #F8FAFC !important;
+                }
+                #modalPaywall .pricing-card-desc {
+                    font-size: 0.73rem !important;
+                    color: #94A3B8 !important;
+                    margin-top: 2px !important;
+                    line-height: 1.3 !important;
+                }
+                #modalPaywall .pricing-card-right {
+                    display: flex !important;
+                    align-items: center !important;
+                    gap: 12px !important;
+                    flex-shrink: 0 !important;
+                }
+                #modalPaywall .pricing-card-price {
+                    text-align: right !important;
+                }
+                #modalPaywall .price-val {
+                    font-size: 1.05rem !important;
+                    color: #F8FAFC !important;
+                    font-weight: 800 !important;
+                    display: block !important;
+                    line-height: 1.1 !important;
+                }
+                #modalPaywall .price-unit {
+                    font-size: 0.68rem !important;
+                    color: #94A3B8 !important;
+                    display: block !important;
+                }
+                #modalPaywall .pricing-radio-icon {
+                    width: 22px !important;
+                    height: 22px !important;
+                    min-width: 22px !important;
+                    min-height: 22px !important;
+                    border-radius: 50% !important;
+                    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    color: transparent !important;
+                    transition: all 0.2s ease !important;
+                    box-sizing: border-box !important;
+                }
+                #modalPaywall .pricing-card.selected .pricing-radio-icon {
+                    border-color: #3B82F6 !important;
+                    background: #3B82F6 !important;
+                    color: #FFFFFF !important;
+                }
+                #modalPaywall .pricing-card.selected.popular .pricing-radio-icon {
+                    border-color: #38BDF8 !important;
+                    background: #38BDF8 !important;
+                    color: #0F172A !important;
+                }
+                #modalPaywall .pricing-card.selected.vip .pricing-radio-icon {
+                    border-color: #A78BFA !important;
+                    background: #A78BFA !important;
+                    color: #0F172A !important;
+                }
+                #modalPaywall .pricing-card.selected.super-vip .pricing-radio-icon {
+                    border-color: #F59E0B !important;
+                    background: #F59E0B !important;
+                    color: #0F172A !important;
+                }
+            </style>
             <div class="modal-content" style="max-height: 90vh;">
                 <div class="modal-header">
                     <h4 style="color: #F8FAFC;"><i data-lucide="crown" style="color: #F59E0B;"></i> Nâng Cấp Bản Quyền Pro</h4>
                     <button class="close-btn" id="closePaywallModal"><i data-lucide="x"></i></button>
                 </div>
                 <div class="modal-body" style="padding-top: 8px;">
-                    <div id="paywallNoticeBox" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15)); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 14px; padding: 12px; margin-bottom: 14px; text-align: center;">
+                    <div id="paywallNoticeBox" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15)); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 14px; padding: 12px; margin-bottom: 12px; text-align: center;">
                         <strong style="color: #F59E0B; font-size: 0.9rem;" id="paywallNoticeTitle">🎁 Bạn đang dùng thử 7 ngày miễn phí</strong>
                         <p style="font-size: 0.78rem; color: #94A3B8; margin-top: 4px; margin-bottom: 0;" id="paywallNoticeSub">Nâng cấp để mở khóa tính năng AI không giới hạn & bảo toàn dữ liệu trọn đời!</p>
                     </div>
 
-                    <!-- 5 PRICING TIERS GRID -->
-                    <div class="pricing-tier-list" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- 5 PRICING TIERS LIST -->
+                    <div class="pricing-tier-list">
                         <!-- TIER 1: 1 THÁNG -->
                         <div class="pricing-card" data-plan="monthly" data-price="29000" onclick="selectPricingPlan('monthly')">
-                            <div class="pricing-card-header">
-                                <div>
-                                    <strong class="pricing-card-title">☕ Gói 1 Tháng</strong>
-                                    <span class="pricing-card-desc">Rẻ hơn 1 cốc cà phê - Linh hoạt</span>
-                                </div>
+                            <div class="pricing-card-left">
+                                <span class="pricing-card-title">☕ Gói 1 Tháng</span>
+                                <span class="pricing-card-desc">Linh hoạt - Rẻ hơn 1 cốc cà phê</span>
+                            </div>
+                            <div class="pricing-card-right">
                                 <div class="pricing-card-price">
                                     <strong class="price-val">29.000 ₫</strong>
                                     <span class="price-unit">/tháng</span>
                                 </div>
+                                <div class="pricing-radio-icon"><i data-lucide="check" style="width: 14px; height: 14px;"></i></div>
                             </div>
                         </div>
 
                         <!-- TIER 2: 1 NĂM (HOT) -->
                         <div class="pricing-card popular" data-plan="yearly" data-price="199000" onclick="selectPricingPlan('yearly')">
-                            <div class="pricing-badge">🔥 TIẾT KIỆM 45% - PHỔ BIẾN NHẤT</div>
-                            <div class="pricing-card-header">
-                                <div>
-                                    <strong class="pricing-card-title">🌟 Gói 1 Năm</strong>
-                                    <span class="pricing-card-desc">Chỉ ~500đ/ngày làm chủ tài chính</span>
-                                </div>
+                            <div class="pricing-card-left">
+                                <span class="pricing-pill-tag popular">🔥 TIẾT KIỆM 45% • PHỔ BIẾN NHẤT</span>
+                                <span class="pricing-card-title">🌟 Gói 1 Năm</span>
+                                <span class="pricing-card-desc">Chỉ ~500đ/ngày làm chủ tài chính</span>
+                            </div>
+                            <div class="pricing-card-right">
                                 <div class="pricing-card-price">
-                                    <strong class="price-val" style="color: #60A5FA;">199.000 ₫</strong>
+                                    <strong class="price-val" style="color: #38BDF8;">199.000 ₫</strong>
                                     <span class="price-unit">/năm</span>
                                 </div>
+                                <div class="pricing-radio-icon"><i data-lucide="check" style="width: 14px; height: 14px;"></i></div>
                             </div>
                         </div>
 
                         <!-- TIER 3: TRỌN ĐỜI -->
                         <div class="pricing-card" data-plan="lifetime" data-price="499000" onclick="selectPricingPlan('lifetime')">
-                            <div class="pricing-badge" style="background: linear-gradient(135deg, #10B981, #059669);">💎 THANH TOÁN 1 LẦN DUY NHẤT</div>
-                            <div class="pricing-card-header">
-                                <div>
-                                    <strong class="pricing-card-title">💎 Gói Trọn Đời</strong>
-                                    <span class="pricing-card-desc">Sở hữu vĩnh viễn, không lo gia hạn</span>
-                                </div>
+                            <div class="pricing-card-left">
+                                <span class="pricing-pill-tag lifetime">💎 THANH TOÁN 1 LẦN DUY NHẤT</span>
+                                <span class="pricing-card-title">💎 Gói Trọn Đời</span>
+                                <span class="pricing-card-desc">Sở hữu vĩnh viễn, không lo gia hạn</span>
+                            </div>
+                            <div class="pricing-card-right">
                                 <div class="pricing-card-price">
                                     <strong class="price-val" style="color: #10B981;">499.000 ₫</strong>
                                     <span class="price-unit">Vĩnh viễn</span>
                                 </div>
+                                <div class="pricing-radio-icon"><i data-lucide="check" style="width: 14px; height: 14px;"></i></div>
                             </div>
                         </div>
 
                         <!-- TIER 4: GÓI VIP -->
                         <div class="pricing-card vip" data-plan="vip" data-price="999000" onclick="selectPricingPlan('vip')">
-                            <div class="pricing-badge" style="background: linear-gradient(135deg, #8B5CF6, #6366F1);">👑 ĐẶC QUYỀN 3 LẦN MAY ĐO RIÊNG</div>
-                            <div class="pricing-card-header">
-                                <div>
-                                    <strong class="pricing-card-title">👑 Gói VIP Cá Nhân Hóa</strong>
-                                    <span class="pricing-card-desc">Kèm 3 lượt yêu cầu lập trình tính năng riêng</span>
-                                </div>
+                            <div class="pricing-card-left">
+                                <span class="pricing-pill-tag vip">👑 3 LẦN MAY ĐO TÍNH NĂNG</span>
+                                <span class="pricing-card-title">👑 Gói VIP Cá Nhân Hóa</span>
+                                <span class="pricing-card-desc">Kèm 3 lượt yêu cầu lập trình tính năng riêng</span>
+                            </div>
+                            <div class="pricing-card-right">
                                 <div class="pricing-card-price">
-                                    <strong class="price-val" style="color: #A78BFA;">999.000 ₫</strong>
+                                    <strong class="price-val" style="color: #C4B5FD;">999.000 ₫</strong>
                                     <span class="price-unit">3 lượt VIP</span>
                                 </div>
+                                <div class="pricing-radio-icon"><i data-lucide="check" style="width: 14px; height: 14px;"></i></div>
                             </div>
                         </div>
 
                         <!-- TIER 5: GÓI SUPER VIP -->
                         <div class="pricing-card super-vip" data-plan="super_vip" data-price="1999000" onclick="selectPricingPlan('super_vip')">
-                            <div class="pricing-badge" style="background: linear-gradient(135deg, #F59E0B, #EF4444);">🏆 ĐẶC QUYỀN 10 LẦN MAY ĐO RIÊNG</div>
-                            <div class="pricing-card-header">
-                                <div>
-                                    <strong class="pricing-card-title">🚀 Gói Super VIP</strong>
-                                    <span class="pricing-card-desc">Kèm 10 lượt yêu cầu lập trình tính năng riêng</span>
-                                </div>
+                            <div class="pricing-card-left">
+                                <span class="pricing-pill-tag super-vip">🚀 10 LẦN MAY ĐO TÍNH NĂNG</span>
+                                <span class="pricing-card-title">🚀 Gói Super VIP</span>
+                                <span class="pricing-card-desc">Kèm 10 lượt yêu cầu lập trình tính năng riêng</span>
+                            </div>
+                            <div class="pricing-card-right">
                                 <div class="pricing-card-price">
-                                    <strong class="price-val" style="color: #F59E0B;">1.999.000 ₫</strong>
+                                    <strong class="price-val" style="color: #FBBF24;">1.999.000 ₫</strong>
                                     <span class="price-unit">10 lượt VIP</span>
                                 </div>
+                                <div class="pricing-radio-icon"><i data-lucide="check" style="width: 14px; height: 14px;"></i></div>
                             </div>
                         </div>
                     </div>
@@ -955,6 +1111,6 @@
     <script src="lib/tesseract.min.js"></script>
 
     <!-- Application Script with Cache Busting -->
-    <script src="app.js?v=4.0.0"></script>
+    <script src="app.js?v=4.2.0"></script>
 </body>
 </html>
