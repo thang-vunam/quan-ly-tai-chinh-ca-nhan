@@ -1069,11 +1069,21 @@ input:checked + .slider-round:before { transform: translateX(20px); }
 }
 
 /* === AI SMART RECEIPT & BANKING SCANNER STYLES === */
+#modalAiScanner .modal-content {
+    max-width: 420px !important;
+    overflow-x: hidden !important;
+}
+
+#modalAiScanner .modal-body {
+    overflow-x: hidden !important;
+}
+
 .scanner-viewport {
     position: relative !important;
     width: 100% !important;
-    min-height: 160px !important;
-    max-height: 260px !important;
+    max-width: 100% !important;
+    height: 220px !important;
+    max-height: 220px !important;
     border-radius: 16px !important;
     background: #060911 !important;
     border: 2px dashed rgba(59, 130, 246, 0.4) !important;
@@ -1087,13 +1097,16 @@ input:checked + .slider-round:before { transform: translateX(20px); }
 }
 
 .scanner-preview-img {
+    width: 100% !important;
+    height: 100% !important;
     max-width: 100% !important;
-    max-height: 248px !important;
-    width: auto !important;
-    height: auto !important;
+    max-height: 100% !important;
     object-fit: contain !important;
+    object-position: center !important;
     opacity: 0.95 !important;
     border-radius: 10px !important;
+    display: block !important;
+    margin: auto !important;
     transition: opacity 0.3s ease !important;
 }
 
