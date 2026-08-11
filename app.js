@@ -1096,6 +1096,7 @@ function initModals() {
         const isFirstTime = !state.userProfile.hasCompletedOnboarding;
         state.userProfile.hasCompletedOnboarding = true;
         saveState();
+        renderUserProfile();
         if (modalProfile) modalProfile.classList.remove('active');
 
         if (isFirstTime && modalUserGuide) {
