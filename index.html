@@ -23,7 +23,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Stylesheet with Cache Busting -->
-    <link rel="stylesheet" href="styles.css?v=4.8.0">
+    <link rel="stylesheet" href="styles.css?v=4.9.0">
 </head>
 <body>
     <div class="app-container">
@@ -586,6 +586,49 @@
 
         <!-- === MODAL: USER PROFILE, AVATAR & PASSKEY SETUP === -->
         <div class="modal-overlay" id="modalProfile">
+            <style>
+                #modalProfile .avatar-upload-box {
+                    position: relative !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    margin-bottom: 18px !important;
+                }
+                #modalProfile .avatar-big,
+                #modalProfile #profileAvatarPreview {
+                    position: relative !important;
+                    width: 78px !important;
+                    height: 78px !important;
+                    min-width: 78px !important;
+                    min-height: 78px !important;
+                    max-width: 78px !important;
+                    max-height: 78px !important;
+                    border-radius: 50% !important;
+                    overflow: hidden !important;
+                    margin: 0 auto 10px auto !important;
+                    box-sizing: border-box !important;
+                    display: flex !important;
+                    justify-content: center !important;
+                    align-items: center !important;
+                    background: var(--accent-blue-gradient) !important;
+                    border: 3px solid rgba(255, 255, 255, 0.2) !important;
+                }
+                #modalProfile .avatar-big img,
+                #modalProfile #profileAvatarPreview img {
+                    position: absolute !important;
+                    top: 0 !important;
+                    left: 0 !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    max-width: 100% !important;
+                    max-height: 100% !important;
+                    object-fit: cover !important;
+                    object-position: center !important;
+                    border-radius: 50% !important;
+                    display: block !important;
+                }
+            </style>
             <div class="modal-content">
                 <div class="modal-header">
                     <h4><i data-lucide="user-check"></i> Hồ Sơ & Cài Đặt Bảo Mật</h4>
@@ -1157,6 +1200,6 @@
     <script src="lib/tesseract.min.js"></script>
 
     <!-- Application Script with Cache Busting -->
-    <script src="app.js?v=4.8.0"></script>
+    <script src="app.js?v=4.9.0"></script>
 </body>
 </html>
