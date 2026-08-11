@@ -2396,7 +2396,7 @@ function openPaywallModal(presetPlan = null) {
             if (noticeSub) noticeSub.innerHTML = 'Đặc quyền: Bạn được <b>trừ 499.000đ đã trả</b> khi nâng cấp lên Gói VIP hoặc Super VIP!';
         } else if (sub.plan === 'vip') {
             if (noticeTitle) noticeTitle.innerHTML = '👑 Bạn Đang Sở Hữu Gói VIP Cá Nhân Hóa (999.000đ)';
-            if (noticeSub) noticeSub.innerHTML = 'Đặc quyền: Nâng cấp lên Super VIP (10 lượt) để yêu cầu làm thêm nhiều tính năng riêng!';
+            if (noticeSub) noticeSub.innerHTML = 'Đặc quyền VIP: Bạn được <b>trừ 999.000đ đã trả</b> khi nâng cấp lên Gói Super VIP (10 lượt)!';
         } else if (sub.plan === 'super_vip') {
             if (noticeTitle) noticeTitle.innerHTML = '🚀 Bạn Đang Sở Hữu Gói Super VIP (1.999.000đ)';
             if (noticeSub) noticeSub.innerHTML = 'Đặc quyền VIP tối cao: Sở hữu trọn đời & 10 lượt yêu cầu lập trình tính năng riêng!';
@@ -2433,12 +2433,17 @@ function selectPricingPlan(planKey) {
     if (planKey === 'vip') basePrice = 999000;
     if (planKey === 'super_vip') basePrice = 1999000;
 
-    // PRORATION RULE: Only deduct 499k paid amount when upgrading from Lifetime (sub.plan === 'lifetime') to VIP or Super VIP
+    // FAIR UPGRADE PRORATION RULES:
+    // 1. Lifetime (paid 499k) -> VIP (999k) or Super VIP (1.999k): Deduct 499k paid amount
+    // 2. VIP (paid 999k) -> Super VIP (1.999k): Deduct 999k paid amount
     let finalPrice = basePrice;
-    if (sub.status === 'active' && sub.plan === 'lifetime' && (planKey === 'vip' || planKey === 'super_vip')) {
-        const lifetimePaid = sub.paidAmount || 499000;
-        if (basePrice > lifetimePaid) {
-            finalPrice = basePrice - lifetimePaid;
+    if (sub.status === 'active') {
+        if (sub.plan === 'lifetime' && (planKey === 'vip' || planKey === 'super_vip')) {
+            const lifetimePaid = sub.paidAmount || 499000;
+            if (basePrice > lifetimePaid) finalPrice = basePrice - lifetimePaid;
+        } else if (sub.plan === 'vip' && planKey === 'super_vip') {
+            const vipPaid = sub.paidAmount || 999000;
+            if (basePrice > vipPaid) finalPrice = basePrice - vipPaid;
         }
     }
 
@@ -2470,12 +2475,17 @@ function triggerPaymentQr(planKey) {
     if (planKey === 'vip') basePrice = 999000;
     if (planKey === 'super_vip') basePrice = 1999000;
 
-    // PRORATION RULE: Only deduct 499k paid amount when upgrading from Lifetime (sub.plan === 'lifetime') to VIP or Super VIP
+    // FAIR UPGRADE PRORATION RULES:
+    // 1. Lifetime (paid 499k) -> VIP (999k) or Super VIP (1.999k): Deduct 499k paid amount
+    // 2. VIP (paid 999k) -> Super VIP (1.999k): Deduct 999k paid amount
     let finalPrice = basePrice;
-    if (sub.status === 'active' && sub.plan === 'lifetime' && (planKey === 'vip' || planKey === 'super_vip')) {
-        const lifetimePaid = sub.paidAmount || 499000;
-        if (basePrice > lifetimePaid) {
-            finalPrice = basePrice - lifetimePaid;
+    if (sub.status === 'active') {
+        if (sub.plan === 'lifetime' && (planKey === 'vip' || planKey === 'super_vip')) {
+            const lifetimePaid = sub.paidAmount || 499000;
+            if (basePrice > lifetimePaid) finalPrice = basePrice - lifetimePaid;
+        } else if (sub.plan === 'vip' && planKey === 'super_vip') {
+            const vipPaid = sub.paidAmount || 999000;
+            if (basePrice > vipPaid) finalPrice = basePrice - vipPaid;
         }
     }
     activeQrPaymentAmount = finalPrice;
