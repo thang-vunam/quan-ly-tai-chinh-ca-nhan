@@ -226,21 +226,16 @@ function initAutoLockInactivityTimer() {
 
 function lockAppSession(reasonMessage) {
     sessionStorage.removeItem('app_unlocked_session');
+    document.body.classList.add('app-locked');
     const modalPin = document.getElementById('modalPinLock');
     if (modalPin) {
+        modalPin.classList.add('active');
         modalPin.style.display = 'flex';
         if (reasonMessage) {
             const p = modalPin.querySelector('p');
             if (p) p.textContent = reasonMessage;
         }
         safeCreateIcons();
-
-        // Auto prompt biometrics on lock session
-        if (state.userProfile && state.userProfile.biometricEnabled && state.userProfile.biometricCredentialId) {
-            setTimeout(() => {
-                triggerBiometricUnlock(true);
-            }, 450);
-        }
     }
 }
 
@@ -254,6 +249,8 @@ function initPinLockSystem() {
     if (state.userProfile && state.userProfile.pinEnabled && state.userProfile.pinCode) {
         const isUnlocked = sessionStorage.getItem('app_unlocked_session') === 'true';
         if (!isUnlocked && modalPin) {
+            document.body.classList.add('app-locked');
+            modalPin.classList.add('active');
             modalPin.style.display = 'flex';
             if (pinGreeting) pinGreeting.textContent = `Xin chào 👋 ${state.userProfile.name || ''}`;
             if (pinAvatar) {
@@ -267,13 +264,18 @@ function initPinLockSystem() {
                 biometricContainer.style.display = state.userProfile.biometricEnabled ? 'block' : 'none';
             }
             safeCreateIcons();
-
-            // AUTOMATICALLY CALL BIOMETRIC UNLOCK WHEN PIN SCREEN APPEARS (0 CLICKS REQUIRED)
-            if (state.userProfile.biometricEnabled && state.userProfile.biometricCredentialId) {
-                setTimeout(() => {
-                    triggerBiometricUnlock(true);
-                }, 450);
+        } else {
+            document.body.classList.remove('app-locked');
+            if (modalPin) {
+                modalPin.classList.remove('active');
+                modalPin.style.display = 'none';
             }
+        }
+    } else {
+        document.body.classList.remove('app-locked');
+        if (modalPin) {
+            modalPin.classList.remove('active');
+            modalPin.style.display = 'none';
         }
     }
 
@@ -482,8 +484,12 @@ async function triggerBiometricUnlock(isAutoTrigger = false) {
 
             if (credential && credential.id) {
                 sessionStorage.setItem('app_unlocked_session', 'true');
+                document.body.classList.remove('app-locked');
                 lastUserActivityTime = Date.now();
-                if (modalPin) modalPin.style.display = 'none';
+                if (modalPin) {
+                    modalPin.classList.remove('active');
+                    modalPin.style.display = 'none';
+                }
                 enteredPinDigits = '';
                 updatePinDotsUI();
                 return;
@@ -515,8 +521,12 @@ function verifyEnteredPin() {
 
     if (enteredPinDigits === state.userProfile.pinCode) {
         sessionStorage.setItem('app_unlocked_session', 'true');
+        document.body.classList.remove('app-locked');
         lastUserActivityTime = Date.now();
-        if (modalPin) modalPin.style.display = 'none';
+        if (modalPin) {
+            modalPin.classList.remove('active');
+            modalPin.style.display = 'none';
+        }
         enteredPinDigits = '';
         updatePinDotsUI();
     } else {

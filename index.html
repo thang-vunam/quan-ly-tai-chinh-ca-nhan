@@ -23,7 +23,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Stylesheet with Cache Busting -->
-    <link rel="stylesheet" href="styles.css?v=4.9.0">
+    <link rel="stylesheet" href="styles.css?v=5.0.0">
 </head>
 <body>
     <div class="app-container">
@@ -311,6 +311,46 @@
 
         <!-- === SECURITY PIN LOCK & BIOMETRIC OVERLAY SCREEN === -->
         <div class="pin-lock-overlay" id="modalPinLock" style="display: none;">
+            <style>
+                body.app-locked .top-bar,
+                body.app-locked .main-content,
+                body.app-locked .fab,
+                body.app-locked .bottom-nav {
+                    display: none !important;
+                    visibility: hidden !important;
+                    opacity: 0 !important;
+                }
+                #modalPinLock {
+                    position: fixed !important;
+                    top: 0 !important;
+                    left: 0 !important;
+                    width: 100vw !important;
+                    height: 100vh !important;
+                    background: #060911 !important;
+                    z-index: 999999 !important;
+                    justify-content: center !important;
+                    align-items: center !important;
+                }
+                #modalPinLock.active,
+                body.app-locked #modalPinLock {
+                    display: flex !important;
+                }
+                #modalPinLock #pinUserAvatarPreview {
+                    position: relative !important;
+                    width: 64px !important;
+                    height: 64px !important;
+                    border-radius: 50% !important;
+                    overflow: hidden !important;
+                    margin: 0 auto 12px auto !important;
+                }
+                #modalPinLock #pinUserAvatarPreview img {
+                    width: 100% !important;
+                    height: 100% !important;
+                    object-fit: cover !important;
+                    border-radius: 50% !important;
+                    display: block !important;
+                }
+            </style>
             <div class="pin-lock-card">
                 <div class="avatar" id="pinUserAvatarPreview" style="margin: 0 auto 12px auto; width: 64px; height: 64px; border: 2px solid var(--accent-blue);">
                     <i data-lucide="user"></i>
@@ -1200,6 +1240,6 @@
     <script src="lib/tesseract.min.js"></script>
 
     <!-- Application Script with Cache Busting -->
-    <script src="app.js?v=4.9.0"></script>
+    <script src="app.js?v=5.0.0"></script>
 </body>
 </html>
